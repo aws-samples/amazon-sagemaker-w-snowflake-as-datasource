@@ -10,13 +10,13 @@ This post shows a way to do this using [Snowflake](https://www.snowflake.com/) a
 
 We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) as a training dataset for this post and train an ML model to predict the median house value for each district. We add this data to Snowflake as a new table. We create a custom training container which downloads data directly from the Snowflake table into the training instance **_rather than first downloading the data into an S3 bucket_**. Once the data is downloaded into the training instance, the custom training script performs data preparation tasks and then trains the machine learning model using the [XGBoost Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html). All code for this blog post including the SageMaker Snowflake notebook is available in this [GitHub repo](https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource).
 
-![Architecture](img/snowflake-sagemaker-Page-1.png)
+![Architecture](img/snowflake-sagemaker-Page-2.png)
 
 ## Walkthrough
 
 The following figure represents the high-level architecture of the proposed solution to use Snowflake as a data source to train ML models with Amazon SageMaker
 
-![Flowchart](img/snowflake-sagemaker-Page-2.png)
+![Flowchart](img/snowflake-sagemaker-Page-1.png)
 
 The steps of the architecture are described below:
 
@@ -85,7 +85,8 @@ To avoid incurring future charges, delete the resources.
 
 ## Conclusion
 
-Restate the post purpose and add next steps. The calls to action can include related content.
+In this solution, we saw how to download data stored in Snowflake table to Sagemaker Training job instance and train a XGBoost model using a custom training container. **This approach allows us to directly integrate Snowflake as a data source with Sagemaker notebook without having the data staged on S3.**
+
 [Optional] Author bio
 Photo Three sentences introducing the author’s AWS role, experience and interests, and a lighthearted personal note.
 
