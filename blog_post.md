@@ -49,6 +49,41 @@ The solution can be divided into five main areas:
 
 In assumption that user has an existing Snowflake account, the first thing is to load [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) to a Snowflake table. Snowflake Connector APIs in Python are used to create Snowflake warehouse, Snowflake table and upload the dataset into user's Snowflake account. 
 
+
+```
+
+import pandas as pd 
+import snowflake.connector
+from sklearn.datasets import fetch_california_housing
+from snowflake.connector.pandas_tools import write_pandas
+
+#Connect to Snowflake account
+conn = snowflake.connector.connect(
+    user        = "your_username",
+    password    =  sf_password,
+    account     = "your_accountid",
+    warehouse   = "warehouse",
+    protocol    = "https"
+    )
+
+#Fetch California Housing dataset
+housing_dataset = fetch_california_housing(as_frame = True)
+
+df_X = housing_dataset['data']
+df_y = housing_dataset['target']
+df_housing = df_X.assign(MedHouseVal = df_y)
+
+# Write the data from the DataFrame to the Snowflake table.
+write_pandas(
+        conn=conn,
+        df=df_housing,
+        table_name=snowflake_table,
+        database=snowflake_db,
+        schema=housing_schema
+    ) 
+
+```
+
 ## Storing Snowflake credentials in AWS Secrets Manager
 
 To secure the user's Snowflake account credentials for access by Amazon SageMaker, the credentials are stored as secrets in AWS Secrets Manager. The procedure to store secrets in AWS Secrets Manager can be referred from [Create an AWS Secrets Manager secret](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html)
@@ -64,6 +99,39 @@ The following are added to the base image:
 - ** [Snowflake Connector for Python](https://docs.snowflake.com/en/user-guide/python-connector.html).
 - ** A script to download Snowflake account credentials from  AWS Secrets Manager. These credentials are used to connect to Snowflake.
 
+```
+
+# Build an image that can be used for training in Amazon SageMaker, we use
+# the SageMaker XGBoost as the base image as it contains support for distributed
+# training.
+FROM 246618743249.dkr.ecr.us-west-2.amazonaws.com/sagemaker-xgboost:1.5-1
+
+MAINTAINER Amazon AI <sage-learner@amazon.com>
+
+
+RUN apt-get -y update && apt-get install -y --no-install-recommends \
+         wget \
+         python3-pip \
+         python3-setuptools \
+         nginx \
+         ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN ln -s /usr/bin/python3 /usr/bin/python
+RUN ln -s /usr/bin/pip3 /usr/bin/pip
+
+# Here we get snowflake-connector python package.
+# pip leaves the install caches populated which uses a 
+# significant amount of space. These optimizations save a fair 
+# amount of space in the image, which reduces start up time.
+RUN pip --no-cache-dir install snowflake-connector-python==2.8.3  
+
+# Include python script for retrieving Snowflake credentials 
+# from AWS SecretsManager
+ADD snowflake_credentials.py /
+
+```
+
 The container image is built and pushed to the container registry i.e. Amazon ECR. This image will be used for downloading data from Snowflake, performing data preparation and finally for training the ML model.
 
 ## Training Amazon Sagemaker Job
@@ -73,6 +141,76 @@ To train our ML model using SageMaker Training Jobs, the following steps are tak
 1. Creation of separate Python scripts for connecting to Snowflake, querying (downloading) the data using [Snowflake Connector for Python](https://docs.snowflake.com/en/user-guide/python-connector.html), preparing the data for ML and finally a training scripts which ties everything together.
 
 1. Providing the training script to the SageMaker SDK [Estimator](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html) along with the source directory so that all the scripts we create can be provided to the training container when the training job is run using the [Estimator.fit](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html#sagemaker.estimator.EstimatorBase.fit) method. You can find detailed guidance in the documentation on [Preparing a Scikit-Learn training script](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_sklearn.html#prepare-a-scikit-learn-training-script) (for training).
+
+```
+    # Define training hyperparameters
+    train_hp = {
+        'max_depth': args.max_depth,
+        'eta': args.eta,
+        'gamma': args.gamma,
+        'min_child_weight': args.min_child_weight,
+        'subsample': args.subsample,
+        'verbosity': args.verbosity,
+        'objective': args.objective,
+        'tree_method': args.tree_method,
+        'predictor': args.predictor,
+    }
+    
+    xgb_train_args = dict(
+        params=train_hp,
+        dtrain=dtrain,
+        evals=watchlist,
+        num_boost_round=args.num_round,
+        model_dir=args.model_dir)
+
+    if len(sm_hosts) > 1:
+        # Wait until all hosts are able to find each other
+        entry_point._wait_hostname_resolution()
+
+        # Execute training function after initializing rabit.
+        distributed.rabit_run(
+            exec_fun=_xgb_train,
+            args=xgb_train_args,
+            include_in_training=(dtrain is not None),
+            hosts=sm_hosts,
+            current_host=sm_current_host,
+            update_rabit_args=True
+        )
+    else:
+        # If single node training, call training method directly.
+        if dtrain:
+            xgb_train_args['is_master'] = True
+            _xgb_train(**xgb_train_args)
+        else:
+            raise ValueError("Training channel must have data to train model.")
+
+```
+
+```
+
+# Retrieve XGBoost custom container from ECR registry path 
+custom_img_uri = account_id+".dkr.ecr."+region+".amazonaws.com/"+custom_img_name+":"+custom_img_tag
+print(f"\nUsing Custom Image URI: {custom_img_uri}")
+
+# Create Sagemaker Estimator
+xgb_script_mode_estimator = sagemaker.estimator.Estimator(
+    image_uri = custom_img_uri,
+    role=role,
+    instance_count=instance_count,
+    instance_type=instance_type,
+    output_path="s3://{}/{}/output".format(bucket, prefix),
+    sagemaker_session=session,
+    entry_point="train.py",
+    source_dir="./src",
+    hyperparameters=hyperparams,
+    environment=env,
+    subnets = subnet_ids,
+)
+
+# Estimator fitting
+xgb_script_mode_estimator.fit()
+
+```
 
 Please note that the data from Snowflake is downloaded directly into the training container instance and at no point is it stored in S3.
 
@@ -89,5 +227,3 @@ In this solution, we saw how to download data stored in Snowflake table to Sagem
 
 [Optional] Author bio
 Photo Three sentences introducing the author’s AWS role, experience and interests, and a lighthearted personal note.
-
-Suggested tags:
