@@ -8,7 +8,7 @@ This post shows a way to do this using [Snowflake](https://www.snowflake.com/) a
 
 ## Solution overview
 
-We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) as a training dataset for this post and train an ML model to predict the median house value for each district. We add this data to Snowflake as a new table. We create a custom training container which downloads data directly from the Snowflake table into the training instance **_rather than first downloading the data into an S3 bucket_**. Once the data is downloaded into the training instance, the custom training script performs data preparation tasks and then trains the machine learning model using the [XGBoost Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html). All code for this blog post including the SageMaker Snowflake notebook is available in this [GitHub repo](https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource).
+We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) as a training dataset for this post and train an ML model to predict the median house value for each district. We add this data to Snowflake as a new table. We create a custom training container which downloads data directly from the Snowflake table into the training instance **_rather than first downloading the data into an S3 bucket_**. Once the data is downloaded into the training instance, the custom training script performs data preparation tasks and then trains the machine learning model using the [XGBoost Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html). All code for this blog post is available in this [GitHub repo](https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource).
 
 ![Architecture](img/snowflake-sagemaker-Page-2.png)
 
@@ -18,46 +18,61 @@ The following figure represents the high-level architecture of the proposed solu
 
 ![Flowchart](img/snowflake-sagemaker-Page-1.png)
 
-The steps of the architecture are described below:
+The workflow for the above architecture is as follows. The detailed instructions for each step are provided later in this post.
 
-1. The housing dataset is loaded into user's Snowflake account.
-2. Snowflake account credentials are stored into AWS Secrets Manager.  
-3. IAM execution role and IAM permissions are set up for Amazon Sagemaker, to access Amazon ECR and AWS Secrets Manager and other services  within AWS environment.
-4. A custom training container image is created and pushed to Amazon ECR.
-5. A SageMaker training instance is created and is used for training an XGBoost Regressor using SageMaker training job. The training instance downloads the dataset from Snowflake directly with access to Snowflake account credentials from AWS Secrets Manager.
-6. The trained XGBoost Regressor model is stored in an S3 bucket.
+1. Ingest the data in a table in your Snowflake account.
+
+1. Store your Snowflake account credentials in AWS Secrets Manager.
+
+1. Setup an IAM role with appropriate permissions to allow Amazon SageMaker to access Amazon ECR, AWS Secrets Manager and other services within your AWS account.
+
+1. Create a custom container image for ML model training and push it to Amazon ECR.
+
+1. Launch a SageMaker Training job for training the ML model. The training instance retrieves Snowflake credentials from AWS Secrets Manager and then uses these credentials to download the dataset from Snowflake directly. _This is the step that eliminates the need for data to be downloaded first into an S3 bucket_.
+
+1. The trained ML model is stored in an S3 bucket.
 
 ### Prerequisites
 
-For this walkthrough, you should have the following prerequisites:
+To implement the solution provided in this post, you should have an [AWS account](https://signin.aws.amazon.com/signin?redirect_uri=https%3A%2F%2Fportal.aws.amazon.com%2Fbilling%2Fsignup%2Fresume&client_id=signup), a [Snowflake account](https://signup.snowflake.com/?utm_cta=trial-en-www-homepage-top-right-nav-ss-evg&_ga=2.36125795.2140702267.1672969035-1338836953.1670007010) and familiarity with Amazon SageMaker.
 
-• An [AWS account](https://signin.aws.amazon.com/signin?redirect_uri=https%3A%2F%2Fportal.aws.amazon.com%2Fbilling%2Fsignup%2Fresume&client_id=signup)
-• A [Snowflake account](https://signup.snowflake.com/?utm_cta=trial-en-www-homepage-top-right-nav-ss-evg&_ga=2.36125795.2140702267.1672969035-1338836953.1670007010)
-• Docker
+### Deployment steps
 
-#### Deployment steps
+The following section provide a detailed description of the steps listed in the walkthrough section.
 
-The solution can be divided into five main areas:
+#### Set up IAM role and SageMaker Notebook
 
-1. **Storing dataset in Snowflake**: 
-2. **Storing Snowflake credentials in AWS Secrets Manager**: 
-3. **Setting up IAM permissions for SageMaker**: 
-4. **Creation of custom container image**: 
-5. **Training Amazon Sagemaker Job**: 
+1. Click 'Launch Stack' for the AWS region you want to deploy resources into. This cloud formation template will create an IAM role called `SageMakerSnowFlakeExample` and a SageMaker Notebook called `aws-aiml-blogpost-sagemaker-snowflake-example` in your AWS account.
 
-## Storing dataset in Snowflake
+   |AWS Region                |     Link        |
+   |:------------------------:|:-----------:|
+   |us-east-1 (N. Virgnia)    | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
+   |us-east-2 (Ohio)          | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
+   |us-west-1 (N. California) | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-1#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
+   |eu-west-1 (Dublin)        | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
+   |ap-northeast-1 (Tokyo)    | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
 
-In assumption that user has an existing Snowflake account, the first thing is to load [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) to a Snowflake table. Snowflake Connector APIs in Python are used to create Snowflake warehouse, Snowflake table and upload the dataset into user's Snowflake account. 
+#### Store Snowflake credentials in AWS Secrets Manager
 
+To secure the user's Snowflake account credentials for access by Amazon SageMaker, the credentials are stored as secrets in AWS Secrets Manager. The procedure to store secrets in AWS Secrets Manager can be referred from [Create an AWS Secrets Manager secret](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html)
 
-```
+#### Ingest the data in a table in your Snowflake account
 
+1. In your AWS console navigate to Amazon SageMaker -> Notebooks and then click on `Open JupyterLab` for `aws-aiml-blogpost-sagemaker-snowflake-example`.
+
+   ![Open JupyterLab](img/sm-nb-jl.png)
+
+1. Click on `snowflake_load_dataset.ipynb` to open it in Jupyter and then click on `Run All Cells`. This will ingest the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) to a Snowflake table.
+
+   ![Notebook Run All Ce;;s](img/sm-nb-runall.png)
+
+```{python}
 import pandas as pd 
 import snowflake.connector
 from sklearn.datasets import fetch_california_housing
 from snowflake.connector.pandas_tools import write_pandas
 
-#Connect to Snowflake account
+# connect to Snowflake account
 conn = snowflake.connector.connect(
     user        = "your_username",
     password    =  sf_password,
@@ -66,14 +81,14 @@ conn = snowflake.connector.connect(
     protocol    = "https"
     )
 
-#Fetch California Housing dataset
+# fetch California Housing dataset
 housing_dataset = fetch_california_housing(as_frame = True)
 
 df_X = housing_dataset['data']
 df_y = housing_dataset['target']
 df_housing = df_X.assign(MedHouseVal = df_y)
 
-# Write the data from the DataFrame to the Snowflake table.
+# write the data from the DataFrame to the Snowflake table.
 write_pandas(
         conn=conn,
         df=df_housing,
@@ -81,60 +96,51 @@ write_pandas(
         database=snowflake_db,
         schema=housing_schema
     ) 
-
 ```
 
-## Storing Snowflake credentials in AWS Secrets Manager
-
-To secure the user's Snowflake account credentials for access by Amazon SageMaker, the credentials are stored as secrets in AWS Secrets Manager. The procedure to store secrets in AWS Secrets Manager can be referred from [Create an AWS Secrets Manager secret](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html)
-
-## Setting up IAM permissions for SageMaker
-
-
-
-## Creation of custom container image
+#### Creation of custom container image
 
 For creating a custom container image, the SageMaker XGBoost container image - `246618743249.dkr.ecr.us-west-2.amazonaws.com/sagemaker-xgboost:1.5-1` is used as the base image for this container.
 The following are added to the base image:
-- ** [Snowflake Connector for Python](https://docs.snowflake.com/en/user-guide/python-connector.html).
-- ** A script to download Snowflake account credentials from  AWS Secrets Manager. These credentials are used to connect to Snowflake.
 
-```
+- [Snowflake Connector for Python](https://docs.snowflake.com/en/user-guide/python-connector.html).
+- A script to download Snowflake account credentials from  AWS Secrets Manager. These credentials are used to connect to Snowflake.
 
-# Build an image that can be used for training in Amazon SageMaker, we use
-# the SageMaker XGBoost as the base image as it contains support for distributed
-# training.
-FROM 246618743249.dkr.ecr.us-west-2.amazonaws.com/sagemaker-xgboost:1.5-1
+   ```{python}
+   # Build an image that can be used for training in Amazon SageMaker, we use
+   # the SageMaker XGBoost as the base image as it contains support for distributed
+   # training.
+   FROM 246618743249.dkr.ecr.us-west-2.amazonaws.com/sagemaker-xgboost:1.5-1
 
-MAINTAINER Amazon AI <sage-learner@amazon.com>
+   MAINTAINER Amazon AI <sage-learner@amazon.com>
 
 
-RUN apt-get -y update && apt-get install -y --no-install-recommends \
-         wget \
-         python3-pip \
-         python3-setuptools \
-         nginx \
-         ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+   RUN apt-get -y update && apt-get install -y --no-install-recommends \
+            wget \
+            python3-pip \
+            python3-setuptools \
+            nginx \
+            ca-certificates \
+      && rm -rf /var/lib/apt/lists/*
 
-RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN ln -s /usr/bin/pip3 /usr/bin/pip
+   RUN ln -s /usr/bin/python3 /usr/bin/python
+   RUN ln -s /usr/bin/pip3 /usr/bin/pip
 
-# Here we get snowflake-connector python package.
-# pip leaves the install caches populated which uses a 
-# significant amount of space. These optimizations save a fair 
-# amount of space in the image, which reduces start up time.
-RUN pip --no-cache-dir install snowflake-connector-python==2.8.3  
+   # Here we get snowflake-connector python package.
+   # pip leaves the install caches populated which uses a 
+   # significant amount of space. These optimizations save a fair 
+   # amount of space in the image, which reduces start up time.
+   RUN pip --no-cache-dir install snowflake-connector-python==2.8.3  
 
-# Include python script for retrieving Snowflake credentials 
-# from AWS SecretsManager
-ADD snowflake_credentials.py /
+   # Include python script for retrieving Snowflake credentials 
+   # from AWS SecretsManager
+   ADD snowflake_credentials.py /
 
-```
+   ```
 
 The container image is built and pushed to the container registry i.e. Amazon ECR. This image will be used for downloading data from Snowflake, performing data preparation and finally for training the ML model.
 
-## Training Amazon Sagemaker Job
+#### Training Amazon SageMaker Job
 
 To train our ML model using SageMaker Training Jobs, the following steps are taken:
 
@@ -142,49 +148,49 @@ To train our ML model using SageMaker Training Jobs, the following steps are tak
 
 1. Providing the training script to the SageMaker SDK [Estimator](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html) along with the source directory so that all the scripts we create can be provided to the training container when the training job is run using the [Estimator.fit](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html#sagemaker.estimator.EstimatorBase.fit) method. You can find detailed guidance in the documentation on [Preparing a Scikit-Learn training script](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_sklearn.html#prepare-a-scikit-learn-training-script) (for training).
 
-```
-    # Define training hyperparameters
-    train_hp = {
-        'max_depth': args.max_depth,
-        'eta': args.eta,
-        'gamma': args.gamma,
-        'min_child_weight': args.min_child_weight,
-        'subsample': args.subsample,
-        'verbosity': args.verbosity,
-        'objective': args.objective,
-        'tree_method': args.tree_method,
-        'predictor': args.predictor,
-    }
-    
-    xgb_train_args = dict(
-        params=train_hp,
-        dtrain=dtrain,
-        evals=watchlist,
-        num_boost_round=args.num_round,
-        model_dir=args.model_dir)
+   ```{python}
+      # Define training hyperparameters
+      train_hp = {
+         'max_depth': args.max_depth,
+         'eta': args.eta,
+         'gamma': args.gamma,
+         'min_child_weight': args.min_child_weight,
+         'subsample': args.subsample,
+         'verbosity': args.verbosity,
+         'objective': args.objective,
+         'tree_method': args.tree_method,
+         'predictor': args.predictor,
+      }
+      
+      xgb_train_args = dict(
+         params=train_hp,
+         dtrain=dtrain,
+         evals=watchlist,
+         num_boost_round=args.num_round,
+         model_dir=args.model_dir)
 
-    if len(sm_hosts) > 1:
-        # Wait until all hosts are able to find each other
-        entry_point._wait_hostname_resolution()
+      if len(sm_hosts) > 1:
+         # Wait until all hosts are able to find each other
+         entry_point._wait_hostname_resolution()
 
-        # Execute training function after initializing rabit.
-        distributed.rabit_run(
-            exec_fun=_xgb_train,
-            args=xgb_train_args,
-            include_in_training=(dtrain is not None),
-            hosts=sm_hosts,
-            current_host=sm_current_host,
-            update_rabit_args=True
-        )
-    else:
-        # If single node training, call training method directly.
-        if dtrain:
-            xgb_train_args['is_master'] = True
-            _xgb_train(**xgb_train_args)
-        else:
-            raise ValueError("Training channel must have data to train model.")
+         # Execute training function after initializing rabit.
+         distributed.rabit_run(
+               exec_fun=_xgb_train,
+               args=xgb_train_args,
+               include_in_training=(dtrain is not None),
+               hosts=sm_hosts,
+               current_host=sm_current_host,
+               update_rabit_args=True
+         )
+      else:
+         # If single node training, call training method directly.
+         if dtrain:
+               xgb_train_args['is_master'] = True
+               _xgb_train(**xgb_train_args)
+         else:
+               raise ValueError("Training channel must have data to train model.")
 
-```
+   ```
 
 ```
 

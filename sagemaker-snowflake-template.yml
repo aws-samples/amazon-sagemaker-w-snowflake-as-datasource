@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create Infrastructure to deploy infrastructure for the Using Snowflake as a data source to train ML models with Amazon SageMaker blog post.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Required Parameters
+        Parameters:
+          - SageMakerNotebookName
+          - NotebookInstanceType          
+    ParameterLabels:
+      SageMakerNotebookName:
+        default: Name of SageMaker Notebook Instance
+      NotebookInstanceType:
+        default: Instance type to use for the notebook
+      
+Parameters:
+  SageMakerNotebookName:
+    Default: aws-aiml-blogpost-sagemaker-snowflake-example
+    Type: String
+    Description: Enter name of SageMaker Notebook instance.
+    MinLength: 1
+    MaxLength: 63
+    AllowedPattern: ^[a-z0-9](-*[a-z0-9])*
+    ConstraintDescription: Must be lowercase or numbers with a length of 1-63 characters.
+  NotebookInstanceType:
+    Default: ml.t3.xlarge
+    Type: String
+    AllowedValues: [ml.t3.medium, ml.t3.large, ml.t3.xlarge, ml.t3.2xlarge]
+    Description: Enter the instance type to use for the notebook. Default is ml.t3.xlarge.
+  
+Resources:
+  SageMakerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Tags: 
+        -
+          Key: Project
+          Value: SageMakerSnowFlakeExample
+      RoleName: SageMakerSnowFlakeExample     
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "sagemaker.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+      Policies:
+        - PolicyName: AdditionalSageMakerPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: AllowCloudFormation
+                Effect: Allow
+                Action:
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                Resource: "*"
+              - Sid: SageMakerTesting
+                Effect: Allow
+                Action:
+                  - sagemaker:CreateExperiment
+                  - sagemaker:CreateTrial
+                  - sagemaker:DescribeEndpoint
+                  - sagemaker:DescribeEndpointConfig
+                  - sagemaker:DescribeMonitoringSchedule
+                  - sagemaker:DescribeProcessingJob
+                  - sagemaker:InvokeEndpoint
+                  - sagemaker:ListMonitoringExecutions
+                  - sagemaker:Search
+                Resource: "*"
+
+  SagemakerFeatureStoreNotebook:
+    Type: "AWS::SageMaker::NotebookInstance"
+    Properties:
+      NotebookInstanceName: !Ref SageMakerNotebookName
+      InstanceType: !Ref NotebookInstanceType
+      RoleArn: !GetAtt SageMakerRole.Arn
+      DefaultCodeRepository: "https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource.git"
+      Tags: 
+        -
+          Key: Project
+          Value: SageMakerSnowFlakeExample
+      
+Outputs:
+  SagemakerFeatureStoreNotebookId:
+    Value: !Ref SagemakerFeatureStoreNotebook
+    Description: Arn of the Jupyter notebook created for running the demo code.
+  
