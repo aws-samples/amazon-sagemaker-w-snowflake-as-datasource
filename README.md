@@ -24,11 +24,12 @@ The following steps describe the steps to be following _before_ running the note
 
 1. Create a SageMaker Notebook with all default options selected except for the IAM role, select the ``SagemakerSnowflakeExampleRole` created in the previous step.
 
-1. Clone the repository in the SageMaker Notebook.
+1. Open a terminal, switch to SageMaker directory and clone this repository in the SageMaker Notebook.
+
 
 ## Usage
 
-1. Clone this repository in the SageMaker Notebook created via the steps described above.
+1. Clone this repository into SageMaker direcotry on the SageMaker Notebook created via the steps described above.
 
 1. Run the code in the [`sagemaker-snowflake-example`](./sagemaker-snowflake-example.ipynb) notebook.
 

@@ -82,7 +82,6 @@ Resources:
       NotebookInstanceName: !Ref SageMakerNotebookName
       InstanceType: !Ref NotebookInstanceType
       RoleArn: !GetAtt SageMakerRole.Arn
-      DefaultCodeRepository: "https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource.git"
       Tags: 
         -
           Key: Project
