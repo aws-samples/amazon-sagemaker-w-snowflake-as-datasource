@@ -87,7 +87,7 @@ Resources:
         -
           Key: Project
           Value: SageMakerSnowFlakeExample
-      
+
 Outputs:
   SagemakerFeatureStoreNotebookId:
     Value: !Ref SagemakerFeatureStoreNotebook

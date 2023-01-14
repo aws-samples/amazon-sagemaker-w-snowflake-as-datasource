@@ -34,4 +34,4 @@ This document describes the steps for ingesting the [California Housing Dataset]
 
 ![snowflake warehouse creation](img/snowflake-warehouse.png)
 
-1. After completion of this step, use the `snowflake_load_dataset.ipynb` to create a Snowflake table and load the dataset (stored as a .csv file in Amazon SageMaker Jupyter) into the table, from your Amazon SageMaker console to Snowflake.
+1. After completion of this step, use the `snowflake-load-dataset.ipynb` to create a Snowflake table and load the dataset (stored as a .csv file in Amazon SageMaker Jupyter) into the table, from your Amazon SageMaker console to Snowflake.
