@@ -1,44 +1,39 @@
-# Snowflake as Data Source for training an ML Model with Amazon SageMaker
+# Snowflake as data source for training an ML Model with Amazon SageMaker
 
-This repository provides an example for how to use Snowflake as a source of training data for training a machine learning model in Amazon SageMaker. The training data is downloaded directly from a Snowflake table into a training instance rather than being first downloaded into an S3 bucket. A custom container is created for training the ML model, it is based on the [SageMaker XGBoost container image](https://github.com/aws/sagemaker-xgboost-container) and the [snowflake-python connector](https://pypi.org/project/snowflake-connector-python/) is packaged into this container.
+This repository provides an example of how to use the [Snowflake Data Cloud](https://www.snowflake.com/) as a source of training data for training a machine learning (ML) model in Amazon SageMaker. We download the training data from a Snowflake table directly into a Amazon SageMaker training instance rather than into an Amazon S3 bucket.
 
-The training dataset used in the sample notebook is the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) that is available for download from the Internet using the `sklearn.datasets`.
+We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) in this example to to train a regression model to predict housing prices. We create a custom container for running the training job, this container uses the [SageMaker XGBoost container image](https://github.com/aws/sagemaker-xgboost-container) as the base image and includes the [snowflake-python connector](https://pypi.org/project/snowflake-connector-python/) for interfacing with Snowflake.
+
+The following figure represents the high-level architecture of the proposed solution to use Snowflake as a data source to train ML models with Amazon SageMaker.
+
+![Architecture](img/snowflake-sagemaker-page-1.png)
 
 ## Installation
 
-The notebook in this repository works well with SageMaker Notebooks. It **does not** work with SageMaker Studio Notebooks because it has code for creating a `docker` container and SageMaker Studio Notebook kernels do not currently have `docker` installed.
+Follow the steps listed below prior to running the notebooks included in this repository.
 
-The following steps describe the steps to be following _before_ running the notebook code.
+1. Create a free account with Snowflake. Detailed instructions are available in [`snowflake-instructions`](./snowflake-instructions.md) file.
 
-1. Create a free account with Snowflake and upload the California housing dataset. Detailed instructions are available in [`snowflake-instructions`](./snowflake-instructions.md) file.
+1. Launch the cloud formation template included in this repository using one of the buttons from the table below. The cloud formation template will create an IAM role called `SageMakerSnowFlakeExample` and a SageMaker Notebook called `aws-aiml-blogpost-sagemaker-snowflake-example` that we will use for running the code in this repository.
 
-1. Create an IAM role with the necessary permissions. This can be done by running the following commands in `CloudShell`.
 
-   ```{{bash}}
-   role=SagemakerSnowflakeExampleRole
-   aws iam create-role --role-name ${role} --assume-role-policy-document file://iam/trust_role_policy_document.json
-   account_id=$(aws sts get-caller-identity | jq -r '.Account')
-   sed -i "s/__ACCOUNT_ID__/${account_id}/g" iam/ECR_permissions.json
-   aws iam put-role-policy --role-name ${role} --policy-name ECR_permissions --policy-document file://iam/ECR_permissions.json
-   ```
-
-1. Create a SageMaker Notebook with all default options selected except for the IAM role, select the ``SagemakerSnowflakeExampleRole` created in the previous step.
-
-1. Clone the repository in the SageMaker Notebook.
+   |AWS Region                |     Link        |
+   |:------------------------:|:-----------:|
+   |us-east-1 (N. Virginia)    | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
+   |us-east-2 (Ohio)          | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
+   |us-west-1 (N. California) | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-1#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
+   |eu-west-1 (Dublin)        | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
+   |ap-northeast-1 (Tokyo)    | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/new?stackName=sm-fs-streaming-agg-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
 
 ## Usage
 
-1. Clone this repository in the SageMaker Notebook created via the steps described above.
-
-1. Run the code in the [`sagemaker-snowflake-example`](./sagemaker-snowflake-example.ipynb) notebook.
+Follow step-by-step instructions provided in [the blog post](blog_post.md).
 
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. See [CONTRIBUTING](./CONTRIBUTING.md)
 
 ## Roadmap
-
-- [ ] Code cleanup
 
 See the open issues for a full list of proposed features (and known issues).
 

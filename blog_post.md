@@ -10,13 +10,13 @@ This post shows a way to do this using [Snowflake](https://www.snowflake.com/) a
 
 We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) as a training dataset for this post and train an ML model to predict the median house value for each district. We add this data to Snowflake as a new table. We create a custom training container which downloads data directly from the Snowflake table into the training instance **_rather than first downloading the data into an S3 bucket_**. Once the data is downloaded into the training instance, the custom training script performs data preparation tasks and then trains the machine learning model using the [XGBoost Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html). All code for this blog post is available in this [GitHub repo](https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource).
 
-![Architecture](img/snowflake-sagemaker-Page-2.png)
+![Flowchart](img/snowflake-sagemaker-page-2.png)
 
 ## Walkthrough
 
-The following figure represents the high-level architecture of the proposed solution to use Snowflake as a data source to train ML models with Amazon SageMaker
+The following figure represents the high-level architecture of the proposed solution to use Snowflake as a data source to train ML models with Amazon SageMaker.
 
-![Flowchart](img/snowflake-sagemaker-Page-1.png)
+![Architecture](img/snowflake-sagemaker-page-1.png)
 
 The workflow for the above architecture is as follows. The detailed instructions for each step are provided later in this post.
 
