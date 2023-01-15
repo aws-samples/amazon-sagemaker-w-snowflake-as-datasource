@@ -2,9 +2,9 @@
 
 _Amit Arora_, _Divya Muralidharan_
 
-Amazon SageMaker requires that the training data for a machine learning (ML) model be present either in [S3 or in EFS or in FSX for Lustre](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html){:target="_blank"}. In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/){:target="_blank"}) to move data into S3. However, this may create a data management challenge in terms of managing the lifecycle of this data, access controls and more. In such situations it may be desirable to have the data accessible to SageMaker _without_ the intermediate storage of data in S3.
+Amazon SageMaker requires that the training data for a machine learning (ML) model be present either in [S3 or in EFS or in FSX for Lustre](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html). In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data into S3. However, this may create a data management challenge in terms of managing the lifecycle of this data, access controls and more. In such situations it may be desirable to have the data accessible to SageMaker _without_ the intermediate storage of data in S3.
 
-This post shows a way to do this using the [Snowflake Data Cloud](https://www.snowflake.com/){:target="_blank"} as the data source and by downloading the data directly from Snowflake into a SageMaker Training Job instance(s).
+This post shows a way to do this using the [Snowflake Data Cloud](https://www.snowflake.com/) as the data source and by downloading the data directly from Snowflake into a SageMaker Training Job instance(s).
 
 ## Solution overview
 
