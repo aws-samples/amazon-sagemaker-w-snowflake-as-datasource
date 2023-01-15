@@ -76,8 +76,24 @@ Resources:
                   - sagemaker:ListMonitoringExecutions
                   - sagemaker:Search
                 Resource: "*"
+              - Sid: ReadWriteFromECR
+                Effect: Allow
+                Action:
+                  - "ecr:BatchGetImage"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:CompleteLayerUpload"
+                  - "ecr:DescribeImages"
+                  - "ecr:DescribeRepositories"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:InitiateLayerUpload"
+                  - "ecr:ListImages"
+                  - "ecr:PutImage"
+                  - "ecr:UploadLayerPart"
+                  - "ecr:CreateRepository"
+                  - "ecr:GetAuthorizationToken"
+                Resource: "*"
 
-  SagemakerFeatureStoreNotebook:
+  SagemakerSnowflakeNotebook:
     Type: "AWS::SageMaker::NotebookInstance"
     Properties:
       NotebookInstanceName: !Ref SageMakerNotebookName
@@ -90,7 +106,7 @@ Resources:
           Value: SageMakerSnowFlakeExample
 
 Outputs:
-  SagemakerFeatureStoreNotebookId:
-    Value: !Ref SagemakerFeatureStoreNotebook
+  SagemakerSnowflakeNotebookId:
+    Value: !Ref SagemakerSnowflakeNotebook
     Description: Arn of the Jupyter notebook created for running the demo code.
   
