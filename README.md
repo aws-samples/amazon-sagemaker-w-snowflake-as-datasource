@@ -2,7 +2,7 @@
 
 This repository provides an example of how to use the [Snowflake Data Cloud](https://www.snowflake.com/) as a source of training data for training a machine learning (ML) model in Amazon SageMaker. We download the training data from a Snowflake table directly into a Amazon SageMaker training instance rather than into an Amazon S3 bucket.
 
-We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) in this example to to train a regression model to predict housing prices. We create a custom container for running the training job, this container uses the [SageMaker XGBoost container image](https://github.com/aws/sagemaker-xgboost-container) as the base image and includes the [snowflake-python connector](https://pypi.org/project/snowflake-connector-python/) for interfacing with Snowflake.
+We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) in this example to to train a regression model to predict the median house value for each district. We create a custom container for running the training job, this container uses the [SageMaker XGBoost container image](https://github.com/aws/sagemaker-xgboost-container) as the base image and includes the [snowflake-python connector](https://pypi.org/project/snowflake-connector-python/) for interfacing with Snowflake.
 
 The following figure represents the high-level architecture of the proposed solution to use Snowflake as a data source to train ML models with Amazon SageMaker.
 

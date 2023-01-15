@@ -2,21 +2,19 @@
 
 _Amit Arora_, _Divya Muralidharan_
 
-Amazon SageMaker requires that the training data for a machine learning model be present either in [S3 or in EFS or in FSX for Lustre](https://aws.amazon.com/blogs/machine-learning/choose-the-best-data-source-for-your-amazon-sagemaker-training-job/). In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data into S3. However, this may create a data management challenge in terms of managing the lifecycle of this data, access controls and more. In such situations it may be desirable to have the data accessible to SageMaker _without_ the intermediate storage of data in S3.
+Amazon SageMaker requires that the training data for a machine learning (ML) model be present either in [S3 or in EFS or in FSX for Lustre](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html){:target="_blank"}. In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/){:target="_blank"}) to move data into S3. However, this may create a data management challenge in terms of managing the lifecycle of this data, access controls and more. In such situations it may be desirable to have the data accessible to SageMaker _without_ the intermediate storage of data in S3.
 
-This post shows a way to do this using [Snowflake](https://www.snowflake.com/) as the data source and by downloading the data directly from Snowflake into a SageMaker Training Job instance.
+This post shows a way to do this using the [Snowflake Data Cloud](https://www.snowflake.com/){:target="_blank"} as the data source and by downloading the data directly from Snowflake into a SageMaker Training Job instance(s).
 
 ## Solution overview
 
 We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) as a training dataset for this post and train an ML model to predict the median house value for each district. We add this data to Snowflake as a new table. We create a custom training container which downloads data directly from the Snowflake table into the training instance **_rather than first downloading the data into an S3 bucket_**. Once the data is downloaded into the training instance, the custom training script performs data preparation tasks and then trains the machine learning model using the [XGBoost Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html). All code for this blog post is available in this [GitHub repo](https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource).
 
-![Flowchart](img/snowflake-sagemaker-page-2.png)
-
-## Walkthrough
-
 The following figure represents the high-level architecture of the proposed solution to use Snowflake as a data source to train ML models with Amazon SageMaker.
 
 ![Architecture](img/snowflake-sagemaker-page-1.png)
+
+## Walkthrough
 
 The workflow for the above architecture is as follows. The detailed instructions for each step are provided later in this post.
 
@@ -28,7 +26,7 @@ The workflow for the above architecture is as follows. The detailed instructions
 
 1. Create a custom container image for ML model training and push it to Amazon ECR.
 
-1. Launch a SageMaker Training job for training the ML model. The training instance retrieves Snowflake credentials from AWS Secrets Manager and then uses these credentials to download the dataset from Snowflake directly. _This is the step that eliminates the need for data to be downloaded first into an S3 bucket_.
+1. Launch a SageMaker Training job for training the ML model. The training instance retrieves Snowflake credentials from AWS Secrets Manager and then uses these credentials to download the dataset from Snowflake directly. _This is the step that eliminates the need for data to be first downloaded into an S3 bucket_.
 
 1. The trained ML model is stored in an S3 bucket.
 
@@ -42,7 +40,7 @@ The following section provide a detailed description of the steps listed in the 
 
 #### Set up IAM role and SageMaker Notebook
 
-1. Click 'Launch Stack' for the AWS region you want to deploy resources into. This cloud formation template will create an IAM role called `SageMakerSnowFlakeExample` and a SageMaker Notebook called `aws-aiml-blogpost-sagemaker-snowflake-example` in your AWS account.
+Click 'Launch Stack' for the AWS region you want to deploy resources into. This cloud formation template will create an IAM role called `SageMakerSnowFlakeExample` and a SageMaker Notebook called `aws-aiml-blogpost-sagemaker-snowflake-example` in your AWS account.
 
    |AWS Region                |     Link        |
    |:------------------------:|:-----------:|
@@ -58,26 +56,30 @@ Store your Snowflake credentials as a secret in AWS Secrets Manager. For instruc
 
 1. Name the secret as `snowflake_credentials`, this is required as the code in the `snowflake-load-dataset.ipynb` expects the secret to be called that.
 
-1. Create the secret as a key-value pair with two keys: `username`: this is your Snowflake username and `password`: this is the password associated with your Snowflake username.
+1. Create the secret as a key-value pair with two keys:
+
+    - `username`: this is your Snowflake username
+    - `password`: this is the password associated with your Snowflake username.
 
 #### Ingest the data in a table in your Snowflake account
 
-1. In your AWS console navigate to Amazon SageMaker -> Notebooks and then click on `Open JupyterLab` for `aws-aiml-blogpost-sagemaker-snowflake-example`.
+1. In your AWS console navigate to Amazon SageMaker -> Notebooks instances and then click on `Open JupyterLab` for `aws-aiml-blogpost-sagemaker-snowflake-example`.
 
    ![Open JupyterLab](img/sm-nb-jl.png)
 
 1. Double click on `snowflake-load-dataset.ipynb` to open it in JupyterLab. This will ingest the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) to a Snowflake table.
 
-1. In the notebook edit the contents of the following cell to replace the placeholder values with the one matching your snowflake account.
+1. In the notebook, edit the contents of the following cell to replace the placeholder values with the one matching your snowflake account.
 
     ```{python}
     sf_account_id = "your-snowflake-account-id"
     ```
 
 1. Now click on `Run All Cells` to run the code in this notebook, this will download the dataset locally into the notebook and then ingest it into the Snowflake table.
+
     ![Notebook Run All Cells](img/sm-nb-runall.png)
 
-   The following code snippet in the notebook connects ingests the dataset into Snowflake. See the `snowflake-load-dataset.ipynb` notebook for the full code.
+   The following code snippet in the notebook ingests the dataset into Snowflake. See the `snowflake-load-dataset.ipynb` notebook for the full code.
 
    ```{python}
    # connect to Snowflake Table schema
@@ -121,7 +123,7 @@ Store your Snowflake credentials as a secret in AWS Secrets Manager. For instruc
 
    ![Snowflake Table](img/snowflake-table.png)
 
-#### Creation of custom container image
+#### Create a custom container for training
 
 We will now create a custom container for the machine learning model training job. This container is based on the SageMaker XGBoost container image - `246618743249.dkr.ecr.us-west-2.amazonaws.com/sagemaker-xgboost:1.5-1` and has the following additions:
 
@@ -167,7 +169,7 @@ Here is the `Dockerfile` for the training container.
 
 The container image is built and pushed to Amazon ECR. This image is used for training the machine learning model.
 
-#### Training the machine learning model using Amazon SageMaker Training Job
+#### Train the machine learning model using Amazon SageMaker Training Job
 
 Once we successfully create the container image and publish it to Amazon ECR we can now start using for model training. 
 
@@ -213,33 +215,33 @@ Once we successfully create the container image and publish it to Amazon ECR we 
 
 1. We then provide the the training script to the SageMaker SDK [`Estimator`](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html) along with the source directory so that all the scripts we create can be provided to the training container when the training job is run using the [`Estimator.fit`](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html#sagemaker.estimator.EstimatorBase.fit) method. You can find detailed guidance in the documentation on [Preparing a Scikit-Learn training script](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_sklearn.html#prepare-a-scikit-learn-training-script) (for training).
 
-```{python}
-custom_img_uri = f"{account_id}.dkr.ecr.{region}.amazonaws.com/{custom_img_name}:{custom_img_tag}"
+    ```{python}
+    custom_img_uri = f"{account_id}.dkr.ecr.{region}.amazonaws.com/{custom_img_name}:{custom_img_tag}"
 
-# Create Sagemaker Estimator
-xgb_script_mode_estimator = sagemaker.estimator.Estimator(
-    image_uri = custom_img_uri,
-    role=role,
-    instance_count=instance_count,
-    instance_type=instance_type,
-    output_path="s3://{}/{}/output".format(bucket, prefix),
-    sagemaker_session=session,
-    entry_point="train.py",
-    source_dir="./src",
-    hyperparameters=hyperparams,
-    environment=env,
-    subnets = subnet_ids,
-)
+    # Create Sagemaker Estimator
+    xgb_script_mode_estimator = sagemaker.estimator.Estimator(
+        image_uri = custom_img_uri,
+        role=role,
+        instance_count=instance_count,
+        instance_type=instance_type,
+        output_path="s3://{}/{}/output".format(bucket, prefix),
+        sagemaker_session=session,
+        entry_point="train.py",
+        source_dir="./src",
+        hyperparameters=hyperparams,
+        environment=env,
+        subnets = subnet_ids,
+    )
 
-# start the training job
-xgb_script_mode_estimator.fit()
-```
+    # start the training job
+    xgb_script_mode_estimator.fit()
+    ```
 
 1. Once the model training is completed the trained model is available as `model.tar.gz` file in the default SageMaker S3 bucket for the region.
 
-```{python}
-print(f"the trained model is available in S3 -> {xgb_script_mode_estimator.model_data}")
-```
+    ```{python}
+    print(f"the trained model is available in S3 -> {xgb_script_mode_estimator.model_data}")
+    ```
 
 1. The trained model can then be deployed for getting inference on new data!
 
