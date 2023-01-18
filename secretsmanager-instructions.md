@@ -16,7 +16,7 @@ Here are the steps for storing your Snowflake credentials (password) in AWS Secr
 
 1. On the Choose secret type page, do the following:
     - For Secret type, choose Other type of secret.
-    - In Key/value pairs,enter your secret in Key/value pairs with Snowflake username as key and snowflake password as value. You can store up to 65536 bytes in the secret.
+    - In Key/value pairs, enter 'username' as Key and value as your Snowflake username. Click the '+ Add Row' to add another entry where 'password' is Key       and your Snowflake password is value. 
     - For Encryption key, choose the AWS KMS key that Secrets Manager uses to encrypt the secret value, and choose Next.
 
 ![choose secret type](img/choose-secret-type.png)
