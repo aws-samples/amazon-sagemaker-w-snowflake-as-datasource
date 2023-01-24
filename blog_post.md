@@ -4,7 +4,7 @@ _Amit Arora_, _Divya Muralidharan_
 
 Amazon SageMaker is a fully managed machine learning (ML) service. With SageMaker, data scientists and developers can quickly and easily build and train ML models, and then directly deploy them into a production-ready hosted environment. It provides an integrated Jupyter authoring notebook instance for easy access to your data sources for exploration and analysis, so you don’t have to manage servers. It also provides common ML algorithms that are optimized to run efficiently against extremely large data in a distributed environment.
 
-Amazon SageMaker requires that the training data for a machine learning (ML) model be present either in [S3 or in EFS or in FSX for Lustre](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html). In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data into S3. However, this may create a data management challenge in terms of managing the lifecycle of this data, access controls and more. In such situations it may be desirable to have the data accessible to SageMaker _without_ the intermediate storage of data in S3.
+Amazon SageMaker requires that the training data for a machine learning (ML) model be present either in [S3 or in EFS or in FSX for Lustre](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html). In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data into S3. However, this approach may create a data management challenge in terms of managing the lifecycle of this data storage medium, crafting access controls, data auditing etc, all for the purpose of staging training data for the duration of the training job. In such situations it may be desirable to have the data accessible to SageMaker in the ephermeral storage media attached to the ephemeral training instances _without_ the intermediate storage of data in S3.
 
 This post shows a way to do this using the [Snowflake Data Cloud](https://www.snowflake.com/) as the data source and by downloading the data directly from Snowflake into a SageMaker Training Job instance(s).
 
@@ -49,7 +49,7 @@ Click 'Launch Stack' for the AWS region you want to deploy resources into. This 
    |us-east-1 (N. Virginia)    | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=sagemake-snowflake-example-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
    |us-east-2 (Ohio)          | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=sagemake-snowflake-example-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
    |us-west-1 (N. California) | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-1#/stacks/new?stackName=sagemake-snowflake-example-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
-   |us-west-2 (Oregon) | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=sagemake-snowflake-example-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml  target="_blank") |
+   |us-west-2 (Oregon) | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=sagemake-snowflake-example-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
    |eu-west-1 (Dublin)        | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=sagemake-snowflake-example-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
    |ap-northeast-1 (Tokyo)    | [<img src="./img/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/new?stackName=sagemake-snowflake-example-stack&templateURL=https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-12893/sagemaker-snowflake-template.yml) |
 
@@ -126,7 +126,11 @@ Store your Snowflake credentials as a secret in AWS Secrets Manager. For instruc
 
    ![Snowflake Table](img/snowflake-table.png)
 
-#### Create a custom container for training
+#### Open sagemaker-snowflake-example.ipynb notebook
+   ![Open JupyterLab](img/sm_snowflake_example.png)
+This notebook will create a custom training container with SnowFlake connection, extract data from SnowFlake into the training instance without staging it in S3, and perform Distributed Data Parallel (DDP) XGBoost model training on the data. DDP Training is not required for model training on such a small dataset; it is included here for illustration of yet another recently released SageMaker feature.
+
+#### Creating a custom container for training as part of a Jupyter Notebook 
 
 We will now create a custom container for the machine learning model training job. This container is based on the SageMaker XGBoost container image - `246618743249.dkr.ecr.us-west-2.amazonaws.com/sagemaker-xgboost:1.5-1` and has the following additions:
 
