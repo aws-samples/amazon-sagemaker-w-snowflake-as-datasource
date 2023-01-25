@@ -133,7 +133,7 @@ This notebook will create a custom training container with SnowFlake connection,
 
 #### Creating a custom container for training as part of a Jupyter Notebook 
 
-We will now create a custom container for the machine learning model training job. This container is based on the SageMaker XGBoost container image - `246618743249.dkr.ecr.us-west-2.amazonaws.com/sagemaker-xgboost:1.5-1` and has the following additions:
+We will now create a custom container for the machine learning model training job. Note that root access is required for creating docker container.  This SageMaker notebook was deployed with root access enabled. If your enterprise org policies do not allow root access to cloud resources, you may want to use this docker file and shell scripts below to build docker container elsewhere (eg. your laptop) and then push it into AWS Elastic Container Registry. We will use the container based on the SageMaker XGBoost container image - `246618743249.dkr.ecr.us-west-2.amazonaws.com/sagemaker-xgboost:1.5-1` and has the following additions:
 
 - The [Snowflake Connector for Python](https://docs.snowflake.com/en/user-guide/python-connector.html) to download the data from the Snowflake table into the training instance.
 
