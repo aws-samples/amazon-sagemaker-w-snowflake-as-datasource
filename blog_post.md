@@ -128,7 +128,8 @@ Store your Snowflake credentials as a secret in AWS Secrets Manager. For instruc
 
 #### Open sagemaker-snowflake-example.ipynb notebook
    ![Open JupyterLab](img/sm_snowflake_example.png)
-This notebook will create a custom training container with SnowFlake connection, extract data from SnowFlake into the training instance without staging it in S3, and perform Distributed Data Parallel (DDP) XGBoost model training on the data. DDP Training is not required for model training on such a small dataset; it is included here for illustration of yet another recently released SageMaker feature.
+   
+This notebook will create a custom training container with SnowFlake connection, extract data from SnowFlake into the training instance's ephemeral storage without staging it in S3, and perform Distributed Data Parallel (DDP) XGBoost model training on the data. DDP Training is not required for model training on such a small dataset; it is included here for illustration of yet another recently released SageMaker feature.
 
 #### Creating a custom container for training as part of a Jupyter Notebook 
 
