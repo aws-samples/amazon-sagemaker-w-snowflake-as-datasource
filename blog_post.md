@@ -250,7 +250,7 @@ Once we successfully create the container image and publish it to Amazon ECR we 
     print(f"the trained model is available in S3 -> {xgb_script_mode_estimator.model_data}")
     ```
 
-1. The trained model can then be deployed for getting inference on new data!
+1. **The trained model can now be deployed for getting inference on new data!** Detailed instructions are available on the [Create your endpoint and deploy your model](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html] page.
 
 ## Cleaning up
 
