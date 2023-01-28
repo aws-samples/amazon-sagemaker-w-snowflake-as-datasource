@@ -1,6 +1,6 @@
 # Using Snowflake as a data source to train ML models with Amazon SageMaker
 
-_Amit Arora_, _Divya Muralidharan_
+_Amit Arora_, _Divya Muralidharan_, _Sergey Ermolin_
 
 Amazon SageMaker is a fully managed machine learning (ML) service. With SageMaker, data scientists and developers can quickly and easily build and train ML models, and then directly deploy them into a production-ready hosted environment. It provides an integrated Jupyter authoring notebook instance for easy access to your data sources for exploration and analysis, so you don’t have to manage servers. It also provides common ML algorithms that are optimized to run efficiently against extremely large data in a distributed environment.
 
