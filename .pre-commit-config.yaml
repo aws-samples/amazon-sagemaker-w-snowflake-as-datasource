@@ -7,4 +7,3 @@ repos:
         stages: [commit]
         language: system
         entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace
-
