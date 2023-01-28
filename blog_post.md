@@ -1,3 +1,5 @@
+<base target="_blank">
+
 # Using Snowflake as a data source to train ML models with Amazon SageMaker
 
 _Amit Arora_, _Divya Muralidharan_
