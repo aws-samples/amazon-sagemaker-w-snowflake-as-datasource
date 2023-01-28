@@ -192,33 +192,32 @@ Once we successfully create the container image and publish it to Amazon ECR we 
       import pandas as pd
       import snowflake.connector
 
-      def data_pull(ctx: snowflake.connector.SnowflakeConnection, hosts: int) -> pd.DataFrame:
-         
-         # each node will download an equal percentage of the data
-         record_percent = int(100/hosts)
-         
-         # Query Snowflake HOUSING table
-         sql = f"select * from HOUSING sample {record_percent};"
-         
-         # Get the dataset into Pandas
-         df = pd.read_sql(sql, ctx)
-         
-         # Prepare the data for ML
-         df.dropna(inplace=True)
-         
-         downloaded_row_cnt = str(len(df))
-         
-         print(f"Number of random rows downloaded from snowflake:{downloaded_row_cnt}")
-         
-         df['AVG_ROOMS'] = (df['TOTAL_ROOMS']/df['HOUSEHOLDS']).round(6)
-         df['AVG_BEDROOMS'] = (df['TOTAL_BEDROOMS']/df['HOUSEHOLDS']).round(6)
-         df['AVE_OCCUP'] = (df['POPULATION']/df['HOUSEHOLDS']).round(6)
-         df.drop(['OCEAN_PROXIMITY'], axis = 1, inplace=True)
-         df.drop(['TOTAL_ROOMS'], axis = 1, inplace=True)
-         df.drop(['TOTAL_BEDROOMS'], axis = 1, inplace=True)
-         df.drop(['HOUSEHOLDS'], axis = 1, inplace=True)
-         
-         return df
+      def data_pull(ctx: snowflake.connector.SnowflakeConnection, table: str, hosts: int) -> pd.DataFrame:
+    
+          # Query Snowflake HOUSING table for number of table records
+          sql_cnt = f"select count(*) from {table};"
+          df_cnt = pd.read_sql(sql_cnt, ctx)
+
+          # Retrieve the total number of table records from dataframe
+          for index, row in df_cnt.iterrows():
+              num_of_records = row.astype(int)
+              list_num_of_rec = num_of_records.tolist()
+          tot_num_records = list_num_of_rec[0]
+
+          record_percent = str(round(100/hosts))
+          print(f"going to download a random {record_percent}% sample of the data")
+          # Query Snowflake HOUSING table
+          sql = f"select * from {table} sample ({record_percent});"
+          print(f"sql={sql}")
+
+          # Get the dataset into Pandas
+          df = pd.read_sql(sql, ctx)
+          print(f"read data into a dataframe of shape {df.shape}")
+          # Prepare the data for ML
+          df.dropna(inplace=True)
+
+          print(f"final shape of dataframe to be used for training {df.shape}")
+          return df
       ```
 
 1. We then provide the the training script to the SageMaker SDK [`Estimator`](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html) along with the source directory so that all the scripts we create can be provided to the training container when the training job is run using the [`Estimator.fit`](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html#sagemaker.estimator.EstimatorBase.fit) method. You can find detailed guidance in the documentation on [Preparing a Scikit-Learn training script](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_sklearn.html#prepare-a-scikit-learn-training-script) (for training).
