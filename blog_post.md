@@ -269,3 +269,6 @@ In this solution, we saw how to download data stored in Snowflake table to Amazo
 <img style="float: left;" src="img/Amit.png">&nbsp;Amit Arora is an AI and ML specialist architect at Amazon Web &nbsp;Services, helping enterprise customers use cloud-based machine &nbsp;learning services to rapidly scale their innovations. He is also an &nbsp;adjunct lecturer in M.S. data analytics program at &nbsp;Georgetown University in Washington D.C.<br><br><br><br>
 
 <img style="float: left;" src="img/Divya.jfif">&nbsp;Divya Muralidharan is a Solutions Architect at Amazon Web Services.
+
+<img style="float: left;" src="img/Sergey.jfif">&nbsp;Sergey Ermolin is an AI and ML specialist architect at Amazon Web &nbsp;Services.
+
