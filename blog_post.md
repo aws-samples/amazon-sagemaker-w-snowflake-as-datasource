@@ -4,7 +4,7 @@ _Amit Arora_, _Divya Muralidharan_
 
 Amazon SageMaker is a fully managed machine learning (ML) service. With SageMaker, data scientists and developers can quickly and easily build and train ML models, and then directly deploy them into a production-ready hosted environment. It provides an integrated Jupyter authoring notebook instance for easy access to your data sources for exploration and analysis, so you don’t have to manage servers. It also provides common ML algorithms that are optimized to run efficiently against extremely large data in a distributed environment.
 
-Amazon SageMaker requires that the training data for a machine learning (ML) model be present either in [S3 or in EFS or in FSX for Lustre](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html). In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data into S3. However, this approach may create a data management challenge in terms of managing the lifecycle of this data storage medium, crafting access controls, data auditing etc, all for the purpose of staging training data for the duration of the training job. In such situations it may be desirable to have the data accessible to SageMaker in the ephermeral storage media attached to the ephemeral training instances _without_ the intermediate storage of data in S3.
+Amazon SageMaker requires that the training data for a machine learning (ML) model be present either in [S3 or in EFS or in FSX for Lustre](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html). In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data into S3. However, this approach may create a data management challenge in terms of managing the lifecycle of this data storage medium, crafting access controls, data auditing etc., all for the purpose of staging training data for the duration of the training job. In such situations it may be desirable to have the data accessible to SageMaker in the ephemeral storage media attached to the ephemeral training instances _without_ the intermediate storage of data in S3.
 
 This post shows a way to do this using the [Snowflake Data Cloud](https://www.snowflake.com/) as the data source and by downloading the data directly from Snowflake into a SageMaker Training Job instance(s).
 
@@ -55,7 +55,7 @@ Click 'Launch Stack' for the AWS region you want to deploy resources into. This 
 
 #### Store Snowflake credentials in AWS Secrets Manager
 
-Store your Snowflake credentials as a secret in AWS Secrets Manager. For instructions on how to create a secret in AWS Secrets Manager refer to [`Create an AWS Secrets Mananger secret`](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html).
+Store your Snowflake credentials as a secret in AWS Secrets Manager. For instructions on how to create a secret in AWS Secrets Manager refer to [`Create an AWS Secrets Manager secret`](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_secret.html).
 
 1. Name the secret as `snowflake_credentials`, this is required as the code in the `snowflake-load-dataset.ipynb` expects the secret to be called that.
 
@@ -179,7 +179,7 @@ The container image is built and pushed to Amazon ECR. This image is used for tr
 
 #### Train the machine learning model using Amazon SageMaker Training Job
 
-Once we successfully create the container image and publish it to Amazon ECR we can now start using for model training. 
+Once we successfully create the container image and publish it to Amazon ECR we can now start using for model training.
 
 1. We create a set of Python scripts to download the data from Snowflake using the [Snowflake Connector for Python](https://docs.snowflake.com/en/user-guide/python-connector.html), prepare the data and then use the `XGBoost Regressor` to train the machine learning model. _It is the step of downloading the data directly into the training instance that avoids having to use Amazon S3 as the intermediate storage for training data_.
 
