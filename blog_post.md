@@ -250,7 +250,7 @@ Once we successfully create the container image and publish it to Amazon ECR we 
     print(f"the trained model is available in S3 -> {xgb_script_mode_estimator.model_data}")
     ```
 
-1. **The trained model can now be deployed for getting inference on new data!** Detailed instructions are available on the [Create your endpoint and deploy your model](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html] page.
+1. **The trained model can now be deployed for getting inference on new data!** Detailed instructions are available on the [Create your endpoint and deploy your model](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html) page.
 
 ## Cleaning up
 
@@ -265,7 +265,7 @@ In this solution, we saw how to download data stored in Snowflake table to Amazo
 
 ## Author bio
 
-<img style="float: left;" src="img/Amit.png">&nbsp;Amit Arora is an AI and ML specialist architect at Amazon Web &nbsp;Services, helping enterprise customers use cloud-based machine &nbsp;learning services to rapidly scale their innovations. He is also an &nbsp;adjunct lecturer in M.S. data analytics program at &nbsp;Georgetown University in Washington D.C.<br><br>
+<img style="float: left;" src="img/Amit.png">&nbsp;Amit Arora is an AI and ML specialist architect at Amazon Web Services, helping enterprise customers use cloud-based machine learning services to rapidly scale their innovations. He is also an adjunct lecturer in M.S. data science and analytics program at Georgetown University in Washington D.C.<br><br>
 
 <img style="float: left;" src="img/Divya.jfif">&nbsp;Divya Muralidharan is a Solutions Architect at Amazon Web Services. She is passionate about helping enterprise customers solve business problems with technology. She has a Masters in Computer Science from Rochester Institute of Technology. Outside of office she spends time cooking, singing and growing plants. <br><br>
 
