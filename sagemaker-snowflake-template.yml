@@ -17,9 +17,9 @@ Metadata:
       
 Parameters:
   SageMakerNotebookName:
-    Default: aws-aiml-blogpost-sagemaker-snowflake-example
+    Default: aws-aiml-blog-sagemaker-snowflake-example
     Type: String
-    Description: Enter name of SageMaker Notebook instance.
+    Description: Enter name of SageMaker Notebook instance. The notebook name must _not_ already exist in your AWS account/region.
     MinLength: 1
     MaxLength: 63
     AllowedPattern: ^[a-z0-9](-*[a-z0-9])*
@@ -29,6 +29,11 @@ Parameters:
     Type: String
     AllowedValues: [ml.t3.medium, ml.t3.large, ml.t3.xlarge, ml.t3.2xlarge]
     Description: Enter the instance type to use for the notebook. Default is ml.t3.xlarge.
+
+  SageMakerIAMRole:
+    Description: Name of IAM role that will be created by this CF Template. The role name must _not_ already exist in your AWS account.
+    Type: String
+    Default: "SageMakerSnowFlakeExampleIAMRole-"     
   
 Resources:
   SageMakerRole:
@@ -37,8 +42,8 @@ Resources:
       Tags: 
         -
           Key: Project
-          Value: SageMakerSnowFlakeExample
-      RoleName: SageMakerSnowFlakeExample     
+          Value: !Ref SageMakerIAMRole
+      RoleName: !Ref SageMakerIAMRole     
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -76,6 +81,7 @@ Resources:
                   - sagemaker:ListMonitoringExecutions
                   - sagemaker:Search
                 Resource: "*"
+
               - Sid: ReadWriteFromECR
                 Effect: Allow
                 Action:
@@ -103,8 +109,8 @@ Resources:
       Tags: 
         -
           Key: Project
-          Value: SageMakerSnowFlakeExample
-
+          Value: SageMakerSnowFlakeExampleIAMRole
+      
 Outputs:
   SagemakerSnowflakeNotebookId:
     Value: !Ref SagemakerSnowflakeNotebook
