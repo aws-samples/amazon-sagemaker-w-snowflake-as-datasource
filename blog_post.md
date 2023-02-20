@@ -425,10 +425,10 @@ integrate Snowflake as a data source with Amazon SageMaker notebook
 without having the data staged in Amazon S3.**
 
 We encourage you to learn more by visiting the [Amazon SageMaker Python
-SDK](https://sagemaker.readthedocs.io/en/stable/) and try out building a
-solution using the sample implementation provided in this blog post and
-a dataset relevant to your business. If you have questions or
-suggestions, leave a comment.
+SDK](https://sagemaker.readthedocs.io/en/stable/) page and try out
+building a solution using the sample implementation provided in this
+blog post and a dataset relevant to your business. If you have questions
+or suggestions, leave a comment.
 
 ------------------------------------------------------------------------
 
