@@ -4,30 +4,33 @@ SageMaker
 
 *Amit Arora*, *Divya Muralidharan*, *Sergey Ermolin*
 
-Amazon SageMaker is a fully managed machine learning (ML) service. With
-SageMaker, data scientists and developers can quickly and easily build
-and train ML models, and then directly deploy them into a
-production-ready hosted environment. It provides an integrated Jupyter
-authoring notebook instance for easy access to your data sources for
-exploration and analysis, so you don’t have to manage servers. It also
-provides common ML algorithms that are optimized to run efficiently
-against extremely large data in a distributed environment.
+[Amazon SageMaker](https://aws.amazon.com/sagemaker/) is a fully managed
+machine learning (ML) service. With SageMaker, data scientists and
+developers can quickly and easily build and train ML models, and then
+directly deploy them into a production-ready hosted environment. It
+provides an integrated Jupyter authoring notebook instance for easy
+access to your data sources for exploration and analysis, so you don’t
+have to manage servers. It also provides common ML algorithms that are
+optimized to run efficiently against extremely large data in a
+distributed environment.
 
 Amazon SageMaker requires that the training data for a machine learning
-(ML) model be present either in [S3 or in EFS or in FSX for
+(ML) model be present either in [Amazon S3 or in Amazon EFS or in Amazon
+FSX for
 Lustre](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html).
 In order to train a model using data stored outside of the three
 supported storage services, the data first needs to be ingested into one
-of these services (typically S3). This requires building a data pipeline
-(using tools such as [Amazon SageMaker Data
+of these services (typically Amazon S3). This requires building a data
+pipeline (using tools such as [Amazon SageMaker Data
 Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data
-into S3. However, this approach may create a data management challenge
-in terms of managing the lifecycle of this data storage medium, crafting
-access controls, data auditing etc., all for the purpose of staging
-training data for the duration of the training job. In such situations
-it may be desirable to have the data accessible to SageMaker in the
-ephemeral storage media attached to the ephemeral training instances
-*without* the intermediate storage of data in S3.
+into Amazon S3. However, this approach may create a data management
+challenge in terms of managing the lifecycle of this data storage
+medium, crafting access controls, data auditing etc., all for the
+purpose of staging training data for the duration of the training job.
+In such situations it may be desirable to have the data accessible to
+SageMaker in the ephemeral storage media attached to the ephemeral
+training instances *without* the intermediate storage of data in Amazon
+S3.
 
 This post shows a way to do this using the [Snowflake Data
 Cloud](https://www.snowflake.com/) as the data source and by downloading
@@ -42,10 +45,10 @@ as a training dataset for this post and train an ML model to predict the
 median house value for each district. We add this data to Snowflake as a
 new table. We create a custom training container which downloads data
 directly from the Snowflake table into the training instance ***rather
-than first downloading the data into an S3 bucket***. Once the data is
-downloaded into the training instance, the custom training script
-performs data preparation tasks and then trains the machine learning
-model using the [XGBoost
+than first downloading the data into an Amazon S3 bucket***. Once the
+data is downloaded into the training instance, the custom training
+script performs data preparation tasks and then trains the machine
+learning model using the [XGBoost
 Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html).
 All code for this blog post is available in this [GitHub
 repo](https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource).
@@ -82,7 +85,7 @@ instructions for each step are provided later in this post.
     Snowflake directly. *This is the step that eliminates the need for
     data to be first downloaded into an S3 bucket*.
 
-6.  The trained ML model is stored in an S3 bucket.
+6.  The trained ML model is stored in an Amazon S3 bucket.
 
 ### Prerequisites
 
@@ -227,10 +230,11 @@ Notebook</figcaption>
 
 This notebook will create a custom training container with SnowFlake
 connection, extract data from SnowFlake into the training instance’s
-ephemeral storage without staging it in S3, and perform Distributed Data
-Parallel (DDP) XGBoost model training on the data. DDP Training is not
-required for model training on such a small dataset; it is included here
-for illustration of yet another recently released SageMaker feature.
+ephemeral storage without staging it in Amazon S3, and perform
+Distributed Data Parallel (DDP) XGBoost model training on the data. DDP
+Training is not required for model training on such a small dataset; it
+is included here for illustration of yet another recently released
+SageMaker feature.
 
 #### Creating a custom container for training as part of a Jupyter Notebook
 
@@ -384,11 +388,11 @@ ECR we can now start using for model training.
     ```
 
 3.  Once the model training is completed the trained model is available
-    as `model.tar.gz` file in the default SageMaker S3 bucket for the
+    as `model.tar.gz` file in the default SageMaker bucket for the
     region.
 
     ``` python
-    print(f"the trained model is available in S3 -> {xgb_script_mode_estimator.model_data}")
+    print(f"the trained model is available in Amazon S3 -> {xgb_script_mode_estimator.model_data}")
     ```
 
 4.  **The trained model can now be deployed for getting inference on new
@@ -418,7 +422,15 @@ In this solution, we saw how to download data stored in Snowflake table
 to Amazon SageMaker Training job instance and train a XGBoost model
 using a custom training container. **This approach allows us to directly
 integrate Snowflake as a data source with Amazon SageMaker notebook
-without having the data staged on S3.**
+without having the data staged in Amazon S3.**
+
+We encourage you to learn more by visiting the [Amazon SageMaker Python
+SDK](https://sagemaker.readthedocs.io/en/stable/) and try out building a
+solution using the sample implementation provided in this blog post and
+a dataset relevant to your business. If you have questions or
+suggestions, leave a comment.
+
+------------------------------------------------------------------------
 
 ## Author bio
 
