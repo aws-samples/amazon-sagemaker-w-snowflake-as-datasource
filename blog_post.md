@@ -15,8 +15,8 @@ optimized to run efficiently against extremely large data in a
 distributed environment.
 
 Amazon SageMaker requires that the training data for a machine learning
-(ML) model be present either in [Amazon S3 or in Amazon EFS or in Amazon
-FSX for
+(ML) model be present either in [Amazon Simple Storage Service (Amazon
+S3) or in Amazon Elastic File System (Amazon EFS) or in Amazon FSx for
 Lustre](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html).
 In order to train a model using data stored outside of the three
 supported storage services, the data first needs to be ingested into one
