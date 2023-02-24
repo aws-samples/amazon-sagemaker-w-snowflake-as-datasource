@@ -92,6 +92,7 @@ To ingest the data, complete the following steps:
 
     ![Notebook Run All Cells](img/sm-nb-runall.png){#fig-notebook-run-all-cells}
 
+
     The following code snippet in the notebook ingests the dataset into Snowflake. See the `snowflake-load-dataset.ipynb` notebook for the full code.
 
     ```{.python}
