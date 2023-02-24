@@ -16,9 +16,9 @@ _Amit Arora_, _Divya Muralidharan_, _Sergey Ermolin_
 
 [Amazon SageMaker](https://aws.amazon.com/sagemaker/) is a fully managed machine learning (ML) service. With SageMaker, data scientists and developers can quickly and easily build and train ML models, and then directly deploy them into a production-ready hosted environment. Sagemaker provides an integrated Jupyter authoring notebook instance for easy access to your data sources for exploration and analysis, so you don’t have to manage servers. It also provides common ML algorithms that are optimized to run efficiently against extremely large data in a distributed environment.
 
-SageMaker requires that the training data for an ML model be present either in [Amazon Simple Storage Service (Amazon S3), Amazon Elastic File System (Amazon EFS) or Amazon FSx for Lustre (for more information, refer to Access Training Data).](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html). In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically Amazon S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data into Amazon S3. However, this approach may create a data management challenge in terms of managing the lifecycle of this data storage medium, crafting access controls, data auditing, and so on, all for the purpose of staging training data for the duration of the training job. In such situations, it may be desirable to have the data accessible to SageMaker in the ephemeral storage media attached to the ephemeral training instances without the intermediate storage of data in Amazon S3.
+SageMaker requires that the training data for an ML model be present either in [Amazon Simple Storage Service (Amazon S3), Amazon Elastic File System (Amazon EFS) or Amazon FSx for Lustre (for more information, refer to Access Training Data)](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html). In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically Amazon S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data into Amazon S3. However, this approach may create a data management challenge in terms of managing the lifecycle of this data storage medium, crafting access controls, data auditing, and so on, all for the purpose of staging training data for the duration of the training job. In such situations, it may be desirable to have the data accessible to SageMaker in the ephemeral storage media attached to the ephemeral training instances without the intermediate storage of data in Amazon S3.
 
-This post shows a way to do this using the [Snowflake](https://www.snowflake.com/) as the data source and by downloading the data directly from Snowflake into a SageMaker Training job instance.
+This post shows a way to do this using [Snowflake](https://www.snowflake.com/) as the data source and by downloading the data directly from Snowflake into a SageMaker Training job instance.
 
 ## Solution overview
 
@@ -80,9 +80,7 @@ To ingest the data, complete the following steps:
 
     ![](img/sm-nb-jl.png)
 
-1. Choose `snowflake-load-dataset.ipynb` to open it in JupyterLab. 
-
-    This will ingest the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) to a Snowflake table.
+1. Choose `snowflake-load-dataset.ipynb` to open it in JupyterLab. This notebook will ingest the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) to a Snowflake table.
 
 1. In the notebook, edit the contents of the following cell to replace the placeholder values with the one matching your snowflake account:
 
@@ -138,13 +136,11 @@ To ingest the data, complete the following steps:
 
    ![](img/snowflake-table.png)
 
-#### Run the sagemaker-snowflake-example.ipynb notebook
-
-Optionally, you can run the `sagemaker-snowflake-example.ipynb` notebook. 
-
-![](img/sm_snowflake_example.png)
+#### Run the `sagemaker-snowflake-example.ipynb` notebook
 
 This notebook creates a custom training container with a Snowflake connection, extracts data from Snowflake into the training instance's ephemeral storage without staging it in Amazon S3, and performs Distributed Data Parallel (DDP) XGBoost model training on the data. DDP training is not required for model training on such a small dataset; it is included here for illustration of yet another recently released SageMaker feature.
+
+![](img/sm_snowflake_example.png)
 
 #### Create a custom container for training 
 

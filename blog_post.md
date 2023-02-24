@@ -17,7 +17,7 @@ SageMaker requires that the training data for an ML model be present
 either in [Amazon Simple Storage Service (Amazon S3), Amazon Elastic
 File System (Amazon EFS) or Amazon FSx for Lustre (for more information,
 refer to Access Training
-Data).](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html).
+Data)](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html).
 In order to train a model using data stored outside of the three
 supported storage services, the data first needs to be ingested into one
 of these services (typically Amazon S3). This requires building a data
@@ -32,7 +32,7 @@ SageMaker in the ephemeral storage media attached to the ephemeral
 training instances without the intermediate storage of data in Amazon
 S3.
 
-This post shows a way to do this using the
+This post shows a way to do this using
 [Snowflake](https://www.snowflake.com/) as the data source and by
 downloading the data directly from Snowflake into a SageMaker Training
 job instance.
@@ -134,9 +134,8 @@ To ingest the data, complete the following steps:
 
     ![](img/sm-nb-jl.png)
 
-3.  Choose `snowflake-load-dataset.ipynb` to open it in JupyterLab.
-
-    This will ingest the [California Housing
+3.  Choose `snowflake-load-dataset.ipynb` to open it in JupyterLab. This
+    notebook will ingest the [California Housing
     Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html)
     to a Snowflake table.
 
@@ -201,12 +200,7 @@ To ingest the data, complete the following steps:
 
     ![](img/snowflake-table.png)
 
-#### Run the sagemaker-snowflake-example.ipynb notebook
-
-Optionally, you can run the `sagemaker-snowflake-example.ipynb`
-notebook.
-
-![](img/sm_snowflake_example.png)
+#### Run the `sagemaker-snowflake-example.ipynb` notebook
 
 This notebook creates a custom training container with a Snowflake
 connection, extracts data from Snowflake into the training instance’s
@@ -215,6 +209,8 @@ Distributed Data Parallel (DDP) XGBoost model training on the data. DDP
 training is not required for model training on such a small dataset; it
 is included here for illustration of yet another recently released
 SageMaker feature.
+
+![](img/sm_snowflake_example.png)
 
 #### Create a custom container for training
 
