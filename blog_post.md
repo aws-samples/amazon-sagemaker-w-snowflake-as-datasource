@@ -291,50 +291,50 @@ ECR, we can start using it for model training.
     training instance that avoids having to use Amazon S3 as the
     intermediate storage for training data.
 
-We facilitate Distributed Data Parallel training by having the training
-code download a random subset of the data such that each training
-instance downloads an equal amount of data from Snowflake. For example,
-if there are two training nodes, then each node downloads a random
-sample of 50% of the rows in the Snowflake table.
+2.  We facilitate Distributed Data Parallel training by having the
+    training code download a random subset of the data such that each
+    training instance downloads an equal amount of data from Snowflake.
+    For example, if there are two training nodes, then each node
+    downloads a random sample of 50% of the rows in the Snowflake table.
 
-See the following code:
+    See the following code:
 
-      ```{.python}
-      """
-      Read the HOUSING table (this is the california housing dataset  used by this example)
-      """
-      import pandas as pd
-      import snowflake.connector
+    ``` python
+    """
+    Read the HOUSING table (this is the california housing dataset  used by this example)
+    """
+    import pandas as pd
+    import snowflake.connector
 
-      def data_pull(ctx: snowflake.connector.SnowflakeConnection, table: str, hosts: int) -> pd.DataFrame:
+    def data_pull(ctx: snowflake.connector.SnowflakeConnection, table: str, hosts: int) -> pd.DataFrame:
 
-          # Query Snowflake HOUSING table for number of table records
-          sql_cnt = f"select count(*) from {table};"
-          df_cnt = pd.read_sql(sql_cnt, ctx)
+        # Query Snowflake HOUSING table for number of table records
+        sql_cnt = f"select count(*) from {table};"
+        df_cnt = pd.read_sql(sql_cnt, ctx)
 
-          # Retrieve the total number of table records from dataframe
-          for index, row in df_cnt.iterrows():
-              num_of_records = row.astype(int)
-              list_num_of_rec = num_of_records.tolist()
-          tot_num_records = list_num_of_rec[0]
+        # Retrieve the total number of table records from dataframe
+        for index, row in df_cnt.iterrows():
+            num_of_records = row.astype(int)
+            list_num_of_rec = num_of_records.tolist()
+        tot_num_records = list_num_of_rec[0]
 
-          record_percent = str(round(100/hosts))
-          print(f"going to download a random {record_percent}% sample of the data")
-          # Query Snowflake HOUSING table
-          sql = f"select * from {table} sample ({record_percent});"
-          print(f"sql={sql}")
+        record_percent = str(round(100/hosts))
+        print(f"going to download a random {record_percent}% sample of the data")
+        # Query Snowflake HOUSING table
+        sql = f"select * from {table} sample ({record_percent});"
+        print(f"sql={sql}")
 
-          # Get the dataset into Pandas
-          df = pd.read_sql(sql, ctx)
-          print(f"read data into a dataframe of shape {df.shape}")
-          # Prepare the data for ML
-          df.dropna(inplace=True)
+        # Get the dataset into Pandas
+        df = pd.read_sql(sql, ctx)
+        print(f"read data into a dataframe of shape {df.shape}")
+        # Prepare the data for ML
+        df.dropna(inplace=True)
 
-          print(f"final shape of dataframe to be used for training {df.shape}")
-          return df
-      ```
+        print(f"final shape of dataframe to be used for training {df.shape}")
+        return df
+    ```
 
-1.  We then provide the training script to the SageMaker SDK
+3.  We then provide the training script to the SageMaker SDK
     [`Estimator`](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html)
     along with the source directory so that all the scripts we create
     can be provided to the training container when the training job is
@@ -364,10 +364,10 @@ See the following code:
     xgb_script_mode_estimator.fit()
     ```
 
-For more information, refer to [Prepare a Scikit-Learn Training
-Script](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_sklearn.html#prepare-a-scikit-learn-training-script).
+    For more information, refer to [Prepare a Scikit-Learn Training
+    Script](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_sklearn.html#prepare-a-scikit-learn-training-script).
 
-1.  After the model training is complete, the trained model is available
+4.  After the model training is complete, the trained model is available
     as a `model.tar.gz` file in the default SageMaker bucket for the
     Region:
 
@@ -375,9 +375,10 @@ Script](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_skle
     print(f"the trained model is available in Amazon S3 -> {xgb_script_mode_estimator.model_data}")
     ```
 
-You can now deploy the trained model for getting inference on new data!
-For instructions, refer to [Create your endpoint and deploy your
-model.](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html)
+    You can now deploy the trained model for getting inference on new
+    data! For instructions, refer to [Create your endpoint and deploy
+    your
+    model.](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html)
 
 ## Clean up
 

@@ -2795,45 +2795,41 @@ vertical-align: -.125em;
 <h4 class="anchored" data-anchor-id="train-the-ml-model-using-a-sagemaker-training-job">Train the ML model using a SageMaker Training job</h4>
 <p>After we successfully create the container image and push it to Amazon ECR, we can start using it for model training.</p>
 <ol type="1">
-<li>We create a set of Python scripts to download the data from Snowflake using the <a href="https://docs.snowflake.com/en/user-guide/python-connector.html">Snowflake Connector for Python</a>, prepare the data and then use the <code>XGBoost Regressor</code> to train the ML model. It is the step of downloading the data directly to the training instance that avoids having to use Amazon S3 as the intermediate storage for training data.</li>
-</ol>
-<p>We facilitate Distributed Data Parallel training by having the training code download a random subset of the data such that each training instance downloads an equal amount of data from Snowflake. For example, if there are two training nodes, then each node downloads a random sample of 50% of the rows in the Snowflake table.</p>
+<li><p>We create a set of Python scripts to download the data from Snowflake using the <a href="https://docs.snowflake.com/en/user-guide/python-connector.html">Snowflake Connector for Python</a>, prepare the data and then use the <code>XGBoost Regressor</code> to train the ML model. It is the step of downloading the data directly to the training instance that avoids having to use Amazon S3 as the intermediate storage for training data.</p></li>
+<li><p>We facilitate Distributed Data Parallel training by having the training code download a random subset of the data such that each training instance downloads an equal amount of data from Snowflake. For example, if there are two training nodes, then each node downloads a random sample of 50% of the rows in the Snowflake table.</p>
 <p>See the following code:</p>
-<pre><code>  ```{.python}
-  &quot;&quot;&quot;
-  Read the HOUSING table (this is the california housing dataset  used by this example)
-  &quot;&quot;&quot;
-  import pandas as pd
-  import snowflake.connector
-
-  def data_pull(ctx: snowflake.connector.SnowflakeConnection, table: str, hosts: int) -&gt; pd.DataFrame:
-
-      # Query Snowflake HOUSING table for number of table records
-      sql_cnt = f&quot;select count(*) from {table};&quot;
-      df_cnt = pd.read_sql(sql_cnt, ctx)
-
-      # Retrieve the total number of table records from dataframe
-      for index, row in df_cnt.iterrows():
-          num_of_records = row.astype(int)
-          list_num_of_rec = num_of_records.tolist()
-      tot_num_records = list_num_of_rec[0]
-
-      record_percent = str(round(100/hosts))
-      print(f&quot;going to download a random {record_percent}% sample of the data&quot;)
-      # Query Snowflake HOUSING table
-      sql = f&quot;select * from {table} sample ({record_percent});&quot;
-      print(f&quot;sql={sql}&quot;)
-
-      # Get the dataset into Pandas
-      df = pd.read_sql(sql, ctx)
-      print(f&quot;read data into a dataframe of shape {df.shape}&quot;)
-      # Prepare the data for ML
-      df.dropna(inplace=True)
-
-      print(f&quot;final shape of dataframe to be used for training {df.shape}&quot;)
-      return df
-  ```</code></pre>
-<ol type="1">
+<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1"></a><span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="co">Read the HOUSING table (this is the california housing dataset  used by this example)</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="im">import</span> snowflake.connector</span>
+<span id="cb4-6"><a href="#cb4-6"></a></span>
+<span id="cb4-7"><a href="#cb4-7"></a><span class="kw">def</span> data_pull(ctx: snowflake.connector.SnowflakeConnection, table: <span class="bu">str</span>, hosts: <span class="bu">int</span>) <span class="op">-&gt;</span> pd.DataFrame:</span>
+<span id="cb4-8"><a href="#cb4-8"></a></span>
+<span id="cb4-9"><a href="#cb4-9"></a>    <span class="co"># Query Snowflake HOUSING table for number of table records</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a>    sql_cnt <span class="op">=</span> <span class="ss">f&quot;select count(*) from </span><span class="sc">{</span>table<span class="sc">}</span><span class="ss">;&quot;</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a>    df_cnt <span class="op">=</span> pd.read_sql(sql_cnt, ctx)</span>
+<span id="cb4-12"><a href="#cb4-12"></a></span>
+<span id="cb4-13"><a href="#cb4-13"></a>    <span class="co"># Retrieve the total number of table records from dataframe</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a>    <span class="cf">for</span> index, row <span class="kw">in</span> df_cnt.iterrows():</span>
+<span id="cb4-15"><a href="#cb4-15"></a>        num_of_records <span class="op">=</span> row.astype(<span class="bu">int</span>)</span>
+<span id="cb4-16"><a href="#cb4-16"></a>        list_num_of_rec <span class="op">=</span> num_of_records.tolist()</span>
+<span id="cb4-17"><a href="#cb4-17"></a>    tot_num_records <span class="op">=</span> list_num_of_rec[<span class="dv">0</span>]</span>
+<span id="cb4-18"><a href="#cb4-18"></a></span>
+<span id="cb4-19"><a href="#cb4-19"></a>    record_percent <span class="op">=</span> <span class="bu">str</span>(<span class="bu">round</span>(<span class="dv">100</span><span class="op">/</span>hosts))</span>
+<span id="cb4-20"><a href="#cb4-20"></a>    <span class="bu">print</span>(<span class="ss">f&quot;going to download a random </span><span class="sc">{</span>record_percent<span class="sc">}</span><span class="ss">% sample of the data&quot;</span>)</span>
+<span id="cb4-21"><a href="#cb4-21"></a>    <span class="co"># Query Snowflake HOUSING table</span></span>
+<span id="cb4-22"><a href="#cb4-22"></a>    sql <span class="op">=</span> <span class="ss">f&quot;select * from </span><span class="sc">{</span>table<span class="sc">}</span><span class="ss"> sample (</span><span class="sc">{</span>record_percent<span class="sc">}</span><span class="ss">);&quot;</span></span>
+<span id="cb4-23"><a href="#cb4-23"></a>    <span class="bu">print</span>(<span class="ss">f&quot;sql=</span><span class="sc">{</span>sql<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb4-24"><a href="#cb4-24"></a></span>
+<span id="cb4-25"><a href="#cb4-25"></a>    <span class="co"># Get the dataset into Pandas</span></span>
+<span id="cb4-26"><a href="#cb4-26"></a>    df <span class="op">=</span> pd.read_sql(sql, ctx)</span>
+<span id="cb4-27"><a href="#cb4-27"></a>    <span class="bu">print</span>(<span class="ss">f&quot;read data into a dataframe of shape </span><span class="sc">{</span>df<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb4-28"><a href="#cb4-28"></a>    <span class="co"># Prepare the data for ML</span></span>
+<span id="cb4-29"><a href="#cb4-29"></a>    df.dropna(inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-30"><a href="#cb4-30"></a></span>
+<span id="cb4-31"><a href="#cb4-31"></a>    <span class="bu">print</span>(<span class="ss">f&quot;final shape of dataframe to be used for training </span><span class="sc">{</span>df<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb4-32"><a href="#cb4-32"></a>    <span class="cf">return</span> df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
 <li><p>We then provide the training script to the SageMaker SDK <a href="https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html"><code>Estimator</code></a> along with the source directory so that all the scripts we create can be provided to the training container when the training job is run using the <a href="https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html#sagemaker.estimator.EstimatorBase.fit"><code>Estimator.fit</code></a> method:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1"></a>custom_img_uri <span class="op">=</span> <span class="ss">f&quot;</span><span class="sc">{</span>account_id<span class="sc">}</span><span class="ss">.dkr.ecr.</span><span class="sc">{</span>region<span class="sc">}</span><span class="ss">.amazonaws.com/</span><span class="sc">{</span>custom_img_name<span class="sc">}</span><span class="ss">:</span><span class="sc">{</span>custom_img_tag<span class="sc">}</span><span class="ss">&quot;</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a></span>
@@ -2853,14 +2849,12 @@ vertical-align: -.125em;
 <span id="cb5-16"><a href="#cb5-16"></a>)</span>
 <span id="cb5-17"><a href="#cb5-17"></a></span>
 <span id="cb5-18"><a href="#cb5-18"></a><span class="co"># start the training job</span></span>
-<span id="cb5-19"><a href="#cb5-19"></a>xgb_script_mode_estimator.fit()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
-</ol>
-<p>For more information, refer to <a href="https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_sklearn.html#prepare-a-scikit-learn-training-script">Prepare a Scikit-Learn Training Script</a>.</p>
-<ol type="1">
+<span id="cb5-19"><a href="#cb5-19"></a>xgb_script_mode_estimator.fit()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>For more information, refer to <a href="https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_sklearn.html#prepare-a-scikit-learn-training-script">Prepare a Scikit-Learn Training Script</a>.</p></li>
 <li><p>After the model training is complete, the trained model is available as a <code>model.tar.gz</code> file in the default SageMaker bucket for the Region:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1"></a><span class="bu">print</span>(<span class="ss">f&quot;the trained model is available in Amazon S3 -&gt; </span><span class="sc">{</span>xgb_script_mode_estimator<span class="sc">.</span>model_data<span class="sc">}</span><span class="ss">&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div></li>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1"></a><span class="bu">print</span>(<span class="ss">f&quot;the trained model is available in Amazon S3 -&gt; </span><span class="sc">{</span>xgb_script_mode_estimator<span class="sc">.</span>model_data<span class="sc">}</span><span class="ss">&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>You can now deploy the trained model for getting inference on new data! For instructions, refer to <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html">Create your endpoint and deploy your model.</a></p></li>
 </ol>
-<p>You can now deploy the trained model for getting inference on new data! For instructions, refer to <a href="https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html">Create your endpoint and deploy your model.</a></p>
 </section>
 </section>
 </section>
