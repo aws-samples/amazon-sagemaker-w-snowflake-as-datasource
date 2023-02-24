@@ -26,7 +26,7 @@ We use the [California Housing Dataset](https://inria.github.io/scikit-learn-moo
 
 The following figure represents the high-level architecture of the proposed solution to use Snowflake as a data source to train ML models with SageMaker.
 
-![](img/snowflake-sagemaker-page-1.png)
+![Architecture](img/snowflake-sagemaker-page-1.png){#fig-architecture}
 
 The workflow steps are as follows:
 
@@ -78,7 +78,7 @@ To ingest the data, complete the following steps:
 
 1. Select the notebook aws-aiml-blogpost-sagemaker-snowflake-example and choose **Open JupyterLab**.
 
-    ![](img/sm-nb-jl.png)
+    ![Open JupyterLab](img/sm-nb-jl.png){#fig-open-jl}
 
 1. Choose `snowflake-load-dataset.ipynb` to open it in JupyterLab. This notebook will ingest the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) to a Snowflake table.
 
@@ -90,7 +90,7 @@ To ingest the data, complete the following steps:
 
 1. On the Run menu, choose **Run All Cells** to run the code in this notebook. This will download the dataset locally into the notebook and then ingest it into the Snowflake table.
 
-    ![](img/sm-nb-runall.png)
+    ![Notebook Run All Cells](img/sm-nb-runall.png){#fig-notebook-run-all-cells}
 
     The following code snippet in the notebook ingests the dataset into Snowflake. See the `snowflake-load-dataset.ipynb` notebook for the full code.
 
@@ -134,13 +134,13 @@ To ingest the data, complete the following steps:
 
 1. Close the notebook after all cells run without any error. Your data is now available in Snowflake. The following screenshot shows the `california_housing` table created in Snowflake.
 
-   ![](img/snowflake-table.png)
+   ![Snowflake Table](img/snowflake-table.png){#fig-snowflake-table}
 
 #### Run the `sagemaker-snowflake-example.ipynb` notebook
 
 This notebook creates a custom training container with a Snowflake connection, extracts data from Snowflake into the training instance's ephemeral storage without staging it in Amazon S3, and performs Distributed Data Parallel (DDP) XGBoost model training on the data. DDP training is not required for model training on such a small dataset; it is included here for illustration of yet another recently released SageMaker feature.
 
-![](img/sm_snowflake_example.png)
+![Open SageMaker Snowflake Example Notebook](img/sm_snowflake_example.png){#fig-open-blog-post-notebook}
 
 #### Create a custom container for training 
 
@@ -271,7 +271,7 @@ After we successfully create the container image and push it to Amazon ECR, we c
 
 To avoid incurring future charges, delete the resources. You can do this by deleting the CloudFormation template used to create the IAM role and SageMaker notebook.
 
-![](img/cfn-delete.png)
+![Cleaning Up](img/cfn-delete.png){#fig-cleaning-up-2}
 
 
 You will have to delete the Snowflake resources manually from the Snowflake console.

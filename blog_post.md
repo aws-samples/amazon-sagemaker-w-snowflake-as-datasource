@@ -57,7 +57,11 @@ The following figure represents the high-level architecture of the
 proposed solution to use Snowflake as a data source to train ML models
 with SageMaker.
 
-![](img/snowflake-sagemaker-page-1.png)
+<figure>
+<img src="img/snowflake-sagemaker-page-1.png" id="fig-architecture"
+alt="Figure 1: Architecture" />
+<figcaption aria-hidden="true">Figure 1: Architecture</figcaption>
+</figure>
 
 The workflow steps are as follows:
 
@@ -132,7 +136,11 @@ To ingest the data, complete the following steps:
 2.  Select the notebook aws-aiml-blogpost-sagemaker-snowflake-example
     and choose **Open JupyterLab**.
 
-    ![](img/sm-nb-jl.png)
+    <figure>
+    <img src="img/sm-nb-jl.png" id="fig-open-jl"
+    alt="Figure 2: Open JupyterLab" />
+    <figcaption aria-hidden="true">Figure 2: Open JupyterLab</figcaption>
+    </figure>
 
 3.  Choose `snowflake-load-dataset.ipynb` to open it in JupyterLab. This
     notebook will ingest the [California Housing
@@ -150,7 +158,12 @@ To ingest the data, complete the following steps:
     notebook. This will download the dataset locally into the notebook
     and then ingest it into the Snowflake table.
 
-    ![](img/sm-nb-runall.png)
+    <figure>
+    <img src="img/sm-nb-runall.png" id="fig-notebook-run-all-cells"
+    alt="Figure 3: Notebook Run All Cells" />
+    <figcaption aria-hidden="true">Figure 3: Notebook Run All
+    Cells</figcaption>
+    </figure>
 
     The following code snippet in the notebook ingests the dataset into
     Snowflake. See the `snowflake-load-dataset.ipynb` notebook for the
@@ -198,7 +211,11 @@ To ingest the data, complete the following steps:
     is now available in Snowflake. The following screenshot shows the
     `california_housing` table created in Snowflake.
 
-    ![](img/snowflake-table.png)
+    <figure>
+    <img src="img/snowflake-table.png" id="fig-snowflake-table"
+    alt="Figure 4: Snowflake Table" />
+    <figcaption aria-hidden="true">Figure 4: Snowflake Table</figcaption>
+    </figure>
 
 #### Run the `sagemaker-snowflake-example.ipynb` notebook
 
@@ -210,7 +227,12 @@ training is not required for model training on such a small dataset; it
 is included here for illustration of yet another recently released
 SageMaker feature.
 
-![](img/sm_snowflake_example.png)
+<figure>
+<img src="img/sm_snowflake_example.png" id="fig-open-blog-post-notebook"
+alt="Figure 5: Open SageMaker Snowflake Example Notebook" />
+<figcaption aria-hidden="true">Figure 5: Open SageMaker Snowflake
+Example Notebook</figcaption>
+</figure>
 
 #### Create a custom container for training
 
@@ -382,7 +404,11 @@ To avoid incurring future charges, delete the resources. You can do this
 by deleting the CloudFormation template used to create the IAM role and
 SageMaker notebook.
 
-![](img/cfn-delete.png)
+<figure>
+<img src="img/cfn-delete.png" id="fig-cleaning-up-2"
+alt="Figure 6: Cleaning Up" />
+<figcaption aria-hidden="true">Figure 6: Cleaning Up</figcaption>
+</figure>
 
 You will have to delete the Snowflake resources manually from the
 Snowflake console.
