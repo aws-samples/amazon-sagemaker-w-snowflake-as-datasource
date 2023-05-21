@@ -3,6 +3,9 @@ Use Snowflake as a data source to train ML models with Amazon SageMaker
 
 *Amit Arora*, *Divya Muralidharan*, *Sergey Ermolin*
 
+***This blog post has been updated in May 2023 to include a workflow
+that does not require building a custom container***.
+
 [Amazon SageMaker](https://aws.amazon.com/sagemaker/) is a fully managed
 machine learning (ML) service. With SageMaker, data scientists and
 developers can quickly and easily build and train ML models, and then
@@ -45,10 +48,11 @@ as a training dataset for this post and train an ML model to predict the
 median house value for each district. We add this data to Snowflake as a
 new table. We create a custom training container that downloads data
 directly from the Snowflake table into the training instance rather than
-first downloading the data into an S3 bucket. After the data is
-downloaded into the training instance, the custom training script
-performs data preparation tasks and then trains the ML model using the
-[XGBoost
+first downloading the data into an S3 bucket. *We also provide an
+optional workflow that does not require creating a custom container*.
+After the data is downloaded into the training instance, the custom
+training script performs data preparation tasks and then trains the ML
+model using the [XGBoost
 Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html).
 All code for this post is available in the [GitHub
 repo](https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource).
@@ -295,6 +299,19 @@ ADD snowflake_credentials.py /
 
 The container image is built and pushed to Amazon ECR. This image is
 used for training the ML model.
+
+#### Run the `sagemaker-snowflake-example-1p.ipynb` notebook (Optional)
+
+This notebook does not create a custom training container but rather
+uses the “bring your own script” mode of SageMaker Training. We use the
+SageMaker XGBoost container and provide additional scripts in the `src`
+directory as part of the `source_dir` parameter to the `Estimator`.
+These additional scripts were earlier packaged as part of the custom
+container. In this approach, the `Estimator` automatically provides all
+files present in the `src` directory to the container on startup. The
+`requirements.txt` file that lists the `snowflake-connector-python`
+Python package as a dependency is also included in the `src` directory
+and this package is installed automatically on container startup.
 
 #### Train the ML model using a SageMaker Training job
 

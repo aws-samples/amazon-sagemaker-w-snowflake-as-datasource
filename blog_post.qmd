@@ -14,6 +14,8 @@ format:
 
 _Amit Arora_, _Divya Muralidharan_, _Sergey Ermolin_
 
+***This blog post has been updated in May 2023 to include a workflow that does not require building a custom container***.
+
 [Amazon SageMaker](https://aws.amazon.com/sagemaker/) is a fully managed machine learning (ML) service. With SageMaker, data scientists and developers can quickly and easily build and train ML models, and then directly deploy them into a production-ready hosted environment. Sagemaker provides an integrated Jupyter authoring notebook instance for easy access to your data sources for exploration and analysis, so you don’t have to manage servers. It also provides common ML algorithms that are optimized to run efficiently against extremely large data in a distributed environment.
 
 SageMaker requires that the training data for an ML model be present either in [Amazon Simple Storage Service (Amazon S3), Amazon Elastic File System (Amazon EFS) or Amazon FSx for Lustre (for more information, refer to Access Training Data)](https://docs.aws.amazon.com/sagemaker/latest/dg/model-access-training-data.html). In order to train a model using data stored outside of the three supported storage services, the data first needs to be ingested into one of these services (typically Amazon S3). This requires building a data pipeline (using tools such as [Amazon SageMaker Data Wrangler](https://aws.amazon.com/sagemaker/data-wrangler/)) to move data into Amazon S3. However, this approach may create a data management challenge in terms of managing the lifecycle of this data storage medium, crafting access controls, data auditing, and so on, all for the purpose of staging training data for the duration of the training job. In such situations, it may be desirable to have the data accessible to SageMaker in the ephemeral storage media attached to the ephemeral training instances without the intermediate storage of data in Amazon S3.
@@ -22,7 +24,7 @@ This post shows a way to do this using [Snowflake](https://www.snowflake.com/) a
 
 ## Solution overview
 
-We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) as a training dataset for this post and train an ML model to predict the median house value for each district. We add this data to Snowflake as a new table. We create a custom training container that downloads data directly from the Snowflake table into the training instance rather than first downloading the data into an S3 bucket. After the data is downloaded into the training instance, the custom training script performs data preparation tasks and then trains the ML model using the [XGBoost Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html). All code for this post is available in the [GitHub repo](https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource).
+We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) as a training dataset for this post and train an ML model to predict the median house value for each district. We add this data to Snowflake as a new table. We create a custom training container that downloads data directly from the Snowflake table into the training instance rather than first downloading the data into an S3 bucket. _We also provide an optional workflow that does not require creating a custom container_. After the data is downloaded into the training instance, the custom training script performs data preparation tasks and then trains the ML model using the [XGBoost Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html). All code for this post is available in the [GitHub repo](https://github.com/aws-samples/amazon-sagemaker-w-snowflake-as-datasource).
 
 The following figure represents the high-level architecture of the proposed solution to use Snowflake as a data source to train ML models with SageMaker.
 
@@ -188,6 +190,10 @@ The following is the Dockerfile for the training container:
    ```
 
 The container image is built and pushed to Amazon ECR. This image is used for training the ML model.
+
+#### Run the `sagemaker-snowflake-example-1p.ipynb` notebook (Optional)
+
+This notebook does not create a custom training container but rather uses the "bring your own script" mode of SageMaker Training. We use the SageMaker XGBoost container and provide additional scripts in the `src` directory as part of the `source_dir` parameter to the `Estimator`. These additional scripts were earlier packaged as part of the custom container. In this approach, the `Estimator` automatically provides all files present in the `src` directory to the container on startup. The `requirements.txt` file that lists the `snowflake-connector-python` Python package as a dependency is also included in the `src` directory and this package is installed automatically on container startup.
 
 #### Train the ML model using a SageMaker Training job
 
