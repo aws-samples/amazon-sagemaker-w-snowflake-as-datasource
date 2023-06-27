@@ -2,13 +2,13 @@
 
 This repository provides an example of how to use the [Snowflake Data Cloud](https://www.snowflake.com/) as a source of training data for training a machine learning (ML) model in Amazon SageMaker. We download the training data from a Snowflake table directly into a Amazon SageMaker training instance rather than into an Amazon S3 bucket.
 
-We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) in this example to to train a regression model to predict the median house value for each district. We show how to use SageMaker Jumpstart which offers out-of-the-box low-code solutions for training models with data stored in Snowflake.
-
-For users who want more control, we also show how to write a custom training script that uses the [SageMaker XGBoost container image](https://github.com/aws/sagemaker-xgboost-container) as the base image and includes the [snowflake-python connector](https://pypi.org/project/snowflake-connector-python/) for interfacing with Snowflake.
+We use the [California Housing Dataset](https://inria.github.io/scikit-learn-mooc/python_scripts/datasets_california_housing.html) in this example to to train a regression model to predict the median house value for each district. We create a custom container for running the training job, this container uses the [SageMaker XGBoost container image](https://github.com/aws/sagemaker-xgboost-container) as the base image and includes the [snowflake-python connector](https://pypi.org/project/snowflake-connector-python/) for interfacing with Snowflake.
 
 The following figure represents the high-level architecture of the proposed solution to use Snowflake as a data source to train ML models with Amazon SageMaker.
 
 ![Architecture](img/snowflake-sagemaker-page-1.png)
+
+***New:*** For users that prefer a low-code or out of the box solution, [Amazon SageMaker JumpStart](https://docs.aws.amazon.com/sagemaker/latest/dg/studio-jumpstart.html) now offers XGBoost and SKLearn models with direct data integration to Snowflake. The [notebook sagemaker-snowflake-example-jumpstart.ipynb](./sagemaker-snowflake-example-jumpstart.ipynb) shows how to use JumpStart's XGBoost model to train a regressor model directly on data in Snowflake without needing to copy the data to S3 and without needing to write a custom training script.
 
 ## Installation
 
