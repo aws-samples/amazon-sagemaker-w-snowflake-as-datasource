@@ -8,6 +8,8 @@ The following figure represents the high-level architecture of the proposed solu
 
 ![Architecture](img/snowflake-sagemaker-page-1.png)
 
+***New:*** For users that prefer a low-code or out of the box solution, [Amazon SageMaker JumpStart](https://docs.aws.amazon.com/sagemaker/latest/dg/studio-jumpstart.html) now offers XGBoost and SKLearn models with direct data integration to Snowflake. The [notebook sagemaker-snowflake-example-jumpstart.ipynb](./sagemaker-snowflake-example-jumpstart.ipynb) shows how to use JumpStart's XGBoost model to train a regressor model directly on data in Snowflake without needing to copy the data to S3 and without needing to write a custom training script.
+
 ## Installation
 
 Follow the steps listed below prior to running the notebooks included in this repository.
